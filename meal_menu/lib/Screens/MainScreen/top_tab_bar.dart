@@ -33,7 +33,12 @@ class TopTabBar extends StatelessWidget {
         length: 2,
         child: Scaffold(
           appBar: applicationBar,
-          body: const TabBarView(children: [MealCategories(), FavoriteMeals()]),
+          body: const TabBarView(children: [
+            MealCategories(),
+            FavoriteMeals(
+              favoriteMeals: [],
+            )
+          ]),
         ));
   }
 }

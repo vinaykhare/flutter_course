@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../MealFilters/meal_filters.dart';
+import '../meals_tab_bar.dart';
 
 class MainDrawer extends StatelessWidget {
   const MainDrawer({
@@ -25,6 +27,8 @@ class MainDrawer extends StatelessWidget {
             ),
           ),
           ListTile(
+            onTap: () => Navigator.of(context)
+                .pushReplacementNamed(MealsTabBar.routePath),
             leading: const Icon(Icons.home),
             title: Text(
               'Meal Categories',
@@ -32,6 +36,8 @@ class MainDrawer extends StatelessWidget {
             ),
           ),
           ListTile(
+            onTap: () => Navigator.of(context)
+                .pushReplacementNamed(MealFilters.routePath),
             leading: const Icon(Icons.settings),
             title: Text(
               'Filters',

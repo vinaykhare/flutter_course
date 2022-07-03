@@ -17,9 +17,9 @@ class MealCategories extends StatelessWidget {
     Size mediaQuerySize = MediaQuery.of(context).size;
     // final applicationBar = AppBar(
     //   title: const Text('Meal Menu'),
-    //   // actions: [
-    //   //   Switch(value: currentTheme, onChanged: (value) => switchTheme(value))
-    //   // ],
+    //   actions: [
+    //     Switch(value: currentTheme, onChanged: (value) => switchTheme(value))
+    //   ],
     // );
     return Scaffold(
       //appBar: applicationBar,

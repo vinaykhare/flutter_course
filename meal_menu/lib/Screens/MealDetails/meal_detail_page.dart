@@ -5,8 +5,12 @@ import '../../Model/meal.dart';
 class MealDetailsPage extends StatelessWidget {
   static String routePath = '/meal_details_page';
   //final String cateogryTitle;
+
+  final Function isFavorite, toggleFavoriteMeal;
   const MealDetailsPage({
     Key? key,
+    required this.isFavorite,
+    required this.toggleFavoriteMeal,
     //required this.cateogryTitle,
   }) : super(key: key);
 
@@ -121,6 +125,14 @@ class MealDetailsPage extends StatelessWidget {
             ],
           ),
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          toggleFavoriteMeal(meal);
+        },
+        child: isFavorite(meal)
+            ? const Icon(Icons.star)
+            : const Icon(Icons.star_border),
       ),
     );
   }

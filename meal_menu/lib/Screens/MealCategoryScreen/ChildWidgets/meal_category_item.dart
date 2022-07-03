@@ -95,10 +95,11 @@ class MealCategoryItem extends StatelessWidget {
                   right: 10,
                   child: Container(
                     padding: const EdgeInsets.all(10),
-                    width: medQry.size.width * 0.70,
-                    decoration: const BoxDecoration(
-                      color: Colors.white38,
-                      borderRadius: BorderRadius.all(
+                    width: medQry.size.width * 0.50,
+                    decoration: BoxDecoration(
+                      color:
+                          Theme.of(context).primaryColorLight.withOpacity(0.5),
+                      borderRadius: const BorderRadius.all(
                         Radius.circular(15),
                       ),
                     ),

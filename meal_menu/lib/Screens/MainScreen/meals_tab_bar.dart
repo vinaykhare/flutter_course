@@ -1,31 +1,31 @@
 import 'package:flutter/material.dart';
+import '../../Model/meal.dart';
 import './favorite_meals.dart';
 import './meal_categories.dart';
 import './ChildWidgets/main_drawer.dart';
 
 class MealsTabBar extends StatefulWidget {
   static String routePath = '/tabbar';
-  final bool currentTheme;
-  final Function switchTheme;
-  const MealsTabBar(
-      {Key? key, required this.switchTheme, required this.currentTheme})
-      : super(key: key);
+
+  final List<Meal> favoriteMeals;
+  final Function switchTheme, toggleFavoriteMeal, isFavorite;
+  final Map<String, bool> appPreferences;
+
+  const MealsTabBar({
+    Key? key,
+    required this.switchTheme,
+    required this.appPreferences,
+    required this.toggleFavoriteMeal,
+    required this.isFavorite,
+    required this.favoriteMeals,
+  }) : super(key: key);
 
   @override
   State<MealsTabBar> createState() => _MealsTabBarState();
 }
 
 class _MealsTabBarState extends State<MealsTabBar> {
-  final List<Map<String, Object>> tabs = [
-    {
-      'tab': const MealCategories(),
-      'title': 'Meal Categories',
-    },
-    {
-      'tab': const FavoriteMeals(),
-      'title': 'Favorite Meals',
-    },
-  ];
+  List<Map<String, Object>> tabs = [];
 
   int selectedTabIndex = 0;
 
@@ -38,18 +38,36 @@ class _MealsTabBarState extends State<MealsTabBar> {
   }
 
   @override
+  void initState() {
+    super.initState();
+
+    tabs = [
+      {
+        'tab': const MealCategories(),
+        'title': 'Meal Categories',
+      },
+      {
+        'tab': FavoriteMeals(
+          favoriteMeals: widget.favoriteMeals,
+        ),
+        'title': 'Favorite Meals',
+      },
+    ];
+  }
+
+  @override
   Widget build(BuildContext context) {
+    bool themeMode = widget.appPreferences['theme'] ?? false;
     final applicationBar = AppBar(
       title: Text(tabs[selectedTabIndex]['title'].toString()),
       actions: [
         Switch(
-            value: widget.currentTheme,
-            onChanged: (value) => widget.switchTheme(value))
+            value: themeMode, onChanged: (value) => widget.switchTheme(value))
       ],
     );
     return Scaffold(
       appBar: applicationBar,
-      drawer: MainDrawer(),
+      drawer: const MainDrawer(),
       body: tabs[selectedTabIndex]['tab'] as Widget,
       bottomNavigationBar: BottomNavigationBar(
         onTap: _selectTab,
