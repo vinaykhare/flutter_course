@@ -6,7 +6,9 @@ import '../models/cart.dart';
 
 class CartItem extends StatelessWidget {
   final Product cartItem;
-  const CartItem(this.cartItem, {Key? key}) : super(key: key);
+  final bool allowEdit;
+  const CartItem(this.cartItem, {Key? key, required this.allowEdit})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -52,8 +54,15 @@ class CartItem extends StatelessWidget {
           Provider.of<Cart>(context, listen: false)
               .addItemToSaveForLater(cartItem);
         }
-        Provider.of<Cart>(context, listen: false)
+        String message = Provider.of<Cart>(context, listen: false)
             .removeItemFromCart(cartItem.id);
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            duration: const Duration(seconds: 5),
+          ),
+        );
       },
       child: Card(
         margin: const EdgeInsets.symmetric(
@@ -70,7 +79,58 @@ class CartItem extends StatelessWidget {
           title: Text(cartItem.title),
           subtitle: Text('Total: \$${(cartItem.price * cartItem.quantity)}'),
           trailing: FittedBox(
-            child: Text('${cartItem.quantity}'),
+            child: Consumer<Cart>(
+              builder: (context, cart, child) {
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    if (allowEdit)
+                      IconButton(
+                        onPressed: () {
+                          String message =
+                              cart.removeSingleItemFromCart(cartItem.id);
+                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(message),
+                              duration: const Duration(seconds: 5),
+                              action: SnackBarAction(
+                                label: "UNDO",
+                                onPressed: () {
+                                  cart.addItemToCart(cartItem);
+                                },
+                              ),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.remove),
+                      ),
+                    Text('${cartItem.quantity}'),
+                    if (allowEdit)
+                      IconButton(
+                        onPressed: () {
+                          String message = cart.addItemToCart(cartItem);
+                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(message),
+                              duration: const Duration(seconds: 5),
+                              action: SnackBarAction(
+                                label: "UNDO",
+                                onPressed: () {
+                                  cart.removeSingleItemFromCart(cartItem.id);
+                                },
+                              ),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.add),
+                      ),
+                  ],
+                );
+              },
+            ),
           ),
         ),
       ),

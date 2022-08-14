@@ -25,7 +25,16 @@ class Cart with ChangeNotifier {
     return total;
   }
 
-  bool addItemToCart(Product product) {
+  int getItemQuantityOf(String id) {
+    Product? prod = _cartItems[id];
+    if (prod != null) {
+      return prod.quantity;
+    } else {
+      return 0;
+    }
+  }
+
+  String addItemToCart(Product product) {
     try {
       if (_cartItems.containsKey(product.id)) {
         _cartItems.update(product.id, (value) {
@@ -35,21 +44,21 @@ class Cart with ChangeNotifier {
       } else {
         _cartItems.putIfAbsent(product.id, () => product);
       }
-      return true;
-    } on Exception catch (_) {
-      return false;
+      return "${product.title} added to the Card!";
+    } on Exception catch (exception) {
+      return "Exception: $exception";
     } finally {
       notifyListeners();
     }
   }
 
-  bool addAllItemToCartFromSaveForLater() {
+  String addAllItemToCartFromSaveForLater() {
     try {
       _cartItems.addAll(_savedForLater);
       _savedForLater.clear();
-      return true;
-    } on Exception catch (_) {
-      return false;
+      return "All Cart Products have been added to the Cart!";
+    } on Exception catch (exception) {
+      return "Exception: $exception";
     } finally {
       notifyListeners();
     }
@@ -78,12 +87,35 @@ class Cart with ChangeNotifier {
     }
   }
 
-  bool removeItemFromCart(String productId) {
+  String removeItemFromCart(String productId) {
     try {
+      Product? product = _cartItems[productId];
+      String productName = product != null ? product.title : "No Name";
       _cartItems.remove(productId);
-      return true;
-    } on Exception catch (_) {
-      return false;
+      return "Removed Product $productName from Cart";
+    } on Exception catch (exception) {
+      return "Exception: $exception";
+    } finally {
+      notifyListeners();
+    }
+  }
+
+  String removeSingleItemFromCart(String productId) {
+    try {
+      Product? product = _cartItems[productId];
+      String productName = product != null ? product.title : "No Name";
+      if (_cartItems.containsKey(productId) &&
+          _cartItems[productId]!.quantity > 1) {
+        _cartItems.update(productId, (value) {
+          value.quantity--;
+          return value;
+        });
+      } else {
+        _cartItems.remove(productId);
+      }
+      return "Removed an Entry of $productName from Cart";
+    } on Exception catch (exception) {
+      return "Exception: $exception";
     } finally {
       notifyListeners();
     }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shop_app/widgets/badge.dart';
 
 import '../screens/product_details.dart';
 import '../models/product.dart';
@@ -15,7 +16,7 @@ class ProductItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Product product = Provider.of<Product>(context);
-    Cart cart = Provider.of<Cart>(context, listen: false);
+    Cart cart = Provider.of<Cart>(context);
     return GestureDetector(
       onTap: () => Navigator.of(context)
           .pushNamed(ProductDetails.routePath, arguments: product),
@@ -35,15 +36,19 @@ class ProductItem extends StatelessWidget {
             product.title,
             style: Theme.of(context).textTheme.titleMedium,
           ),
-          trailing: IconButton(
-            onPressed: () {
-              cart.addItemToCart(product);
-            },
-            icon: Icon(
-              Icons.shopping_cart,
-              color: Theme.of(context).colorScheme.primary,
+          trailing: Badge(
+            value: cart.getItemQuantityOf(product.id).toString(),
+            color: Colors.red,
+            child: IconButton(
+              onPressed: () {
+                cart.addItemToCart(product);
+              },
+              icon: Icon(
+                Icons.shopping_cart,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              color: Theme.of(context).colorScheme.onPrimary,
             ),
-            color: Theme.of(context).colorScheme.onPrimary,
           ),
         ),
         child: ClipRRect(

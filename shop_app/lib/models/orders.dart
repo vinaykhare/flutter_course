@@ -10,7 +10,10 @@ class Orders with ChangeNotifier {
     return [..._listOfOrders];
   }
 
-  void addOrder(Cart cart) {
+  String addOrder(Cart cart) {
+    if (cart.cartItems.isEmpty) {
+      return "Cart is Empty!";
+    }
     _listOfOrders.insert(
       0,
       Order(
@@ -20,6 +23,7 @@ class Orders with ChangeNotifier {
         amount: cart.cartTotal,
       ),
     );
+    return "Order Placed Successfully!";
   }
 
   @override

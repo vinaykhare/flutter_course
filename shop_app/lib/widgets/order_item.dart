@@ -60,6 +60,7 @@ class _OrderItemState extends State<OrderItem> {
             child: ListView.builder(
               itemBuilder: (ctx, index) => CartItem(
                 widget.order.products.values.toList()[index],
+                allowEdit: false,
               ),
               itemCount: widget.order.products.length,
             ),

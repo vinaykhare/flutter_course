@@ -42,7 +42,7 @@ class CartScreen extends StatelessWidget {
                     const Spacer(),
                     Chip(
                       label: Text(
-                        '\$${cart.cartTotal}',
+                        cart.cartTotal.toStringAsFixed(2),
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.onPrimary,
                         ),
@@ -52,10 +52,20 @@ class CartScreen extends StatelessWidget {
                     TextButton(
                       child: const Text('ORDER NOW'),
                       onPressed: () {
-                        Provider.of<Orders>(context, listen: false)
-                            .addOrder(cart);
+                        String message =
+                            Provider.of<Orders>(context, listen: false)
+                                .addOrder(cart);
                         cart.clearCart();
-                        Navigator.of(context).pushNamed(OrdersPage.routePath);
+                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(message),
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                        if (message != "Cart is Empty!") {
+                          Navigator.of(context).pushNamed(OrdersPage.routePath);
+                        }
                       },
                     )
                   ],
@@ -67,6 +77,7 @@ class CartScreen extends StatelessWidget {
                   itemCount: cart.cartItems.length,
                   itemBuilder: (ctx, i) => CartItem(
                     cart.cartItems.values.toList()[i],
+                    allowEdit: true,
                   ),
                 ),
               ),
