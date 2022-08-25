@@ -1,28 +1,88 @@
+// ignore_for_file: avoid_print
+
 import 'package:flutter/foundation.dart';
+
 import './cart.dart';
 import './order.dart';
+import 'integrate_firebase.dart';
 import 'product.dart';
 
 class Orders with ChangeNotifier {
   final List<Order> _listOfOrders = [];
+  String urlStr = '/orders';
 
   List<Order> get allOrders {
     return [..._listOfOrders];
   }
 
-  String addOrder(Cart cart) {
+  Future<String> fetchaAllOrders() async {
+    IntegrateFirebase firebase = IntegrateFirebase(urlStr);
+    var serverOrders = await firebase.get();
+    if (serverOrders.containsKey("errorMessage")) {
+      return serverOrders["errorMessage"];
+    }
+    _listOfOrders.clear();
+    serverOrders.forEach((orderId, orderData) {
+      //print(orderData["products"]);
+      Map<String, Product> productsFromServer = {};
+      var productList = orderData["products"] as Map<String, dynamic>;
+      productList.forEach((key, value) {
+        productsFromServer.putIfAbsent(
+          key,
+          () => Product(
+            id: value["id"],
+            description: value["description"],
+            imageUrl: value["imageUrl"],
+            price: value["price"],
+            title: value["title"],
+            qty: value["quantity"],
+          ),
+        );
+      });
+      Order order = Order(
+        id: orderId,
+        amount: orderData["amount"],
+        orderCreationDate: DateTime.parse(orderData["orderCreationDate"]),
+        // products: {
+        //   "orderindex": Product.fromJson(orderData["products"]),
+        // },
+        products: productsFromServer,
+      );
+      _listOfOrders.add(order);
+    });
+
+    notifyListeners();
+    return "Orders Loaded Successfully";
+  }
+
+  Future<String> addOrder(Cart cart) async {
     if (cart.cartItems.isEmpty) {
       return "Cart is Empty!";
     }
+    IntegrateFirebase firebase = IntegrateFirebase(urlStr);
+
+    var timestamp = DateTime.now();
+    var addOrderResponse = await firebase.post(
+      {
+        "products": cart.cartItems,
+        "orderCreationDate": timestamp.toIso8601String(),
+        "amount": cart.cartTotal,
+      },
+    );
+    if (addOrderResponse.containsKey("errorMessage")) {
+      return addOrderResponse["errorMessage"];
+    }
+
     _listOfOrders.insert(
       0,
       Order(
-        id: DateTime.now().toString(),
+        id: addOrderResponse["name"],
         products: Map<String, Product>.from(cart.cartItems),
-        orderCreationDate: DateTime.now(),
+        orderCreationDate: timestamp,
         amount: cart.cartTotal,
       ),
     );
+
     return "Order Placed Successfully!";
   }
 

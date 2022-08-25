@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shop_app/screens/add_edit_product.dart';
 
+import 'models/auth_service.dart';
 import 'models/cart.dart';
 import 'models/orders.dart';
 import 'models/products.dart';
+import 'screens/auth_screen.dart';
 import 'screens/cart_items.dart';
 import 'screens/orders_page.dart';
 import 'screens/product_details.dart';
 import 'screens/products_overview.dart';
+import 'screens/manage_products.dart';
 
 void main() => runApp(const MyApp());
 
@@ -33,25 +37,37 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (context) => Orders(),
         ),
-      ],
-      child: MaterialApp(
-        title: 'MyShop',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSwatch(
-            primarySwatch: Colors.pink,
-            accentColor: Colors.pinkAccent,
-          ),
-          fontFamily: 'Lato',
+        ChangeNotifierProvider(
+          create: (context) => AuthService(),
         ),
-        //home: const ProductsOverview(),
-        initialRoute: ProductsOverview.routePath,
-        routes: {
-          ProductDetails.routePath: (context) => const ProductDetails(),
-          ProductsOverview.routePath: (context) => const ProductsOverview(),
-          CartScreen.routePath: (context) => const CartScreen(),
-          OrdersPage.routePath: (context) => const OrdersPage(),
-        },
+      ],
+      child: Consumer<AuthService>(
+        builder: (context, authService, child) => MaterialApp(
+          title: 'Shop App',
+          debugShowCheckedModeBanner: false,
+          theme: ThemeData(
+            colorScheme: ColorScheme.fromSwatch(
+              primarySwatch: Colors.pink,
+              accentColor: Colors.pinkAccent,
+            ),
+            fontFamily: 'Lato',
+          ),
+          home: authService.token != null
+              ? const ProductsOverview()
+              : const AuthScreen(),
+          // initialRoute: authService.token != null
+          //     ? ProductsOverview.routePath
+          //     : AuthScreen.routePath,
+          routes: {
+            ProductDetails.routePath: (context) => const ProductDetails(),
+            ProductsOverview.routePath: (context) => const ProductsOverview(),
+            CartScreen.routePath: (context) => const CartScreen(),
+            OrdersPage.routePath: (context) => const OrdersPage(),
+            ManageProducts.routePath: (context) => const ManageProducts(),
+            AddEditProduct.routePath: (context) => const AddEditProduct(),
+            AuthScreen.routePath: (context) => const AuthScreen(),
+          },
+        ),
       ),
     );
 

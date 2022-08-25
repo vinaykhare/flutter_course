@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../models/order.dart';
-import 'cart_item.dart';
+import 'selected_product.dart';
 
 class OrderItem extends StatefulWidget {
   const OrderItem({
@@ -22,6 +22,7 @@ class _OrderItemState extends State<OrderItem> {
   bool _expanded = false;
   @override
   Widget build(BuildContext context) {
+    var scMessenger = ScaffoldMessenger.of(context);
     return Column(
       children: [
         ListTile(
@@ -58,9 +59,10 @@ class _OrderItemState extends State<OrderItem> {
           SizedBox(
             height: min(widget.order.products.length * 20.0 + 100, 180),
             child: ListView.builder(
-              itemBuilder: (ctx, index) => CartItem(
-                widget.order.products.values.toList()[index],
+              itemBuilder: (ctx, index) => SelectedProducts(
+                cartItem: widget.order.products.values.toList()[index],
                 allowEdit: false,
+                scMessenger: scMessenger,
               ),
               itemCount: widget.order.products.length,
             ),

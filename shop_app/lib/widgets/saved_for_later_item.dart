@@ -15,10 +15,11 @@ class SavedForLater extends StatelessWidget {
     return Card(
       child: ListTile(
         leading: CircleAvatar(
-          child: Padding(
-            padding: const EdgeInsets.all(5),
-            child: FittedBox(child: Image.network(savedForLaterItem.imageUrl)),
-          ),
+          backgroundImage: NetworkImage(savedForLaterItem.imageUrl),
+          // child: Padding(
+          //   padding: const EdgeInsets.all(5),
+          //   child: FittedBox(child: Image.network(savedForLaterItem.imageUrl)),
+          // ),
         ),
         title: Text(savedForLaterItem.title),
         subtitle: Text(

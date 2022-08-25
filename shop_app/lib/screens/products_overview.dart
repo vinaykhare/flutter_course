@@ -1,5 +1,3 @@
-// ignore_for_file: avoid_print
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 // import 'package:provider/provider.dart';
@@ -7,6 +5,8 @@ import 'package:provider/provider.dart';
 // import '../models/products.dart';
 // import '../models/product.dart';
 import '../models/cart.dart';
+//import '../models/orders.dart';
+import '../models/products.dart';
 import '../widgets/badge.dart';
 import '../widgets/products_grid.dart';
 import '../widgets/app_drawer.dart';
@@ -28,6 +28,29 @@ class ProductsOverview extends StatefulWidget {
 
 class _ProductsOverviewState extends State<ProductsOverview> {
   bool isFavoriteScreen = false;
+  bool isInit = true;
+  bool isLoading = true;
+
+  Future<void> refershProducts(BuildContext context) async {
+    await Provider.of<Products>(context, listen: false).fetchaAllPrducts();
+  }
+
+  @override
+  void didChangeDependencies() {
+    if (isInit) {
+      Provider.of<Products>(context, listen: false).fetchaAllPrducts().then(
+            (value) => setState(
+              () {
+                isLoading = false;
+              },
+            ),
+          );
+      Provider.of<Cart>(context, listen: false).fetchaAllCartItems();
+    }
+    isInit = false;
+    super.didChangeDependencies();
+  }
+
   @override
   Widget build(BuildContext context) {
     //Cart cart = Provider.of<Cart>(context);
@@ -97,7 +120,14 @@ class _ProductsOverviewState extends State<ProductsOverview> {
       ),
       //drawer: const AppDrawer(),
       drawer: const AppDrawer(),
-      body: ProductsGrid(isFavorite: isFavoriteScreen),
+      body: RefreshIndicator(
+        onRefresh: () => refershProducts(context),
+        child: isLoading
+            ? const Center(
+                child: CircularProgressIndicator(),
+              )
+            : ProductsGrid(isFavorite: isFavoriteScreen),
+      ),
     );
   }
 }
