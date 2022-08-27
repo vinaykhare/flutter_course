@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shop_app/screens/add_edit_product.dart';
 
 import 'models/auth_service.dart';
 import 'models/cart.dart';
@@ -12,6 +11,7 @@ import 'screens/orders_page.dart';
 import 'screens/product_details.dart';
 import 'screens/products_overview.dart';
 import 'screens/manage_products.dart';
+import 'screens/add_edit_product.dart';
 
 void main() => runApp(const MyApp());
 

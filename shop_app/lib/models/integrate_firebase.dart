@@ -13,8 +13,7 @@ class IntegrateFirebase {
   Map<String, dynamic> resp = {};
 
   IntegrateFirebase(this.targetObject) {
-    urlStr =
-        'https://shop-app-202208181250-default-rtdb.asia-southeast1.firebasedatabase.app/$targetObject/.json?auth=${AuthService.authToken}';
+    urlStr = '{server_url}/$targetObject/.json?auth=${AuthService.authToken}';
   }
 
   Future<Map<String, dynamic>> post(Map<String, dynamic> data) async {
