@@ -1,12 +1,23 @@
+// ignore_for_file: avoid_print
+
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import 'integrate_firebase.dart';
 import 'product.dart';
 
 class Cart with ChangeNotifier {
-  final Map<String, Product> _cartItems = {};
-  final Map<String, Product> _savedForLater = {};
+  Map<String, Product> _cartItems = {};
+  Map<String, Product> _savedForLater = {};
+  String? cartId = "";
   String urlStr = '/cartitems';
+
+  late IntegrateFirebase firebase;
+
+  Cart(BuildContext context) {
+    firebase = Provider.of<IntegrateFirebase>(context, listen: false);
+    firebase.setUrl = urlStr;
+  }
 
   Map<String, Product> get cartItems {
     return _cartItems;
@@ -38,136 +49,80 @@ class Cart with ChangeNotifier {
   }
 
   Future<String> fetchaAllCartItems() async {
-    IntegrateFirebase firebase = IntegrateFirebase(urlStr);
-
+    firebase.setUrlWithUserAndId(urlStr, cartId);
     var serverCartItems = await firebase.get();
-
     if (serverCartItems.containsKey("errorMessage")) {
       return serverCartItems["errorMessage"];
     }
-    serverCartItems.forEach(
-      (prodId, productData) {
-        Product product = Product(
-          id: prodId,
-          description: productData["description"],
-          imageUrl: productData["imageUrl"],
-          title: productData["title"],
-          price: productData["price"],
-        );
-        product.isFavorite = productData["isFavorite"] ?? false;
-        _cartItems.putIfAbsent(prodId, () => product);
-      },
-    );
+    _cartItems = serverCartItems["cartItems"];
+    _savedForLater = serverCartItems["savedForLater"];
+    cartId = serverCartItems["name"];
+    // serverCartItems.forEach(
+    //   (prodId, productData) {
+    //     Product product = Product(
+    //       id: prodId,
+    //       description: productData["description"],
+    //       imageUrl: productData["imageUrl"],
+    //       title: productData["title"],
+    //       price: productData["price"],
+    //     );
+    //     product.isFavorite = productData["isFavorite"] ?? false;
+    //     _cartItems.putIfAbsent(prodId, () => product);
+    //   },
+    // );
     notifyListeners();
     return "Shopping Cart Loaded Successfully.";
   }
 
-  Future<String> addItemToCart(Product product) async {
-    try {
-      var serverResponse = await addItemToCartOnServer(product);
-      if (serverResponse.containsKey("errorMessage")) {
-        return serverResponse["errorMessage"];
-      }
-
-      if (_cartItems.containsKey(product.id)) {
-        _cartItems.update(
-          product.id,
-          (value) {
-            value.quantity++;
-            return value;
-          },
-        );
-      } else {
-        _cartItems.putIfAbsent(
-          product.id,
-          () => product,
-        );
-      }
-      return "${product.title} added to the Cart!";
-    } on Exception catch (exception) {
-      return "Exception: $exception";
-    } finally {
-      notifyListeners();
-    }
-  }
-
-  Future<Map<String, dynamic>> addItemToCartOnServer(Product product) async {
-    Map<String, dynamic> cartItemResponse = {};
+  Future<void> addItemToCart(Product product) async {
     if (_cartItems.containsKey(product.id)) {
-      IntegrateFirebase firebase = IntegrateFirebase("$urlStr/${product.id}");
-
-      cartItemResponse = await firebase.patch(
-        {
-          "quantity": product.quantity + 1,
+      _cartItems.update(
+        product.id,
+        (value) {
+          value.quantity++;
+          return value;
         },
       );
     } else {
-      IntegrateFirebase firebase = IntegrateFirebase(urlStr);
-      cartItemResponse = await firebase.post(
-        {
-          "title": product.title,
-          "description": product.description,
-          "imageUrl": product.imageUrl,
-          "price": product.price,
-          "quantity": product.quantity,
-        },
+      _cartItems.putIfAbsent(
+        product.id,
+        () => Product(
+          id: product.id,
+          description: product.description,
+          imageUrl: product.imageUrl,
+          price: product.price,
+          title: product.title,
+        ),
       );
     }
-    return cartItemResponse;
+    await updateFirebase();
   }
 
   Future<String> removeItemFromCart(Product product) async {
-    try {
-      IntegrateFirebase firebase = IntegrateFirebase("$urlStr/${product.id}");
-      var deleteItemResponse = await firebase.delete();
-      if (deleteItemResponse.containsKey("errorMessage")) {
-        return deleteItemResponse["errorMessage"];
-      }
-      _cartItems.remove(product.id);
-      return "Removed Product ${product.title} from Cart";
-    } on Exception catch (exception) {
-      return "Exception: $exception";
-    } finally {
-      notifyListeners();
-    }
+    _cartItems.remove(product.id);
+    await updateFirebase();
+    notifyListeners();
+    return "";
   }
 
   Future<String> removeSingleItemFromCart(Product cartItem) async {
-    try {
-      IntegrateFirebase firebase = IntegrateFirebase("$urlStr/${cartItem.id}");
-
-      if (cartItem.quantity > 1) {
-        var updateItemResponse = await firebase.patch(
-          {
-            "quantity": cartItem.quantity - 1,
-          },
-        );
-        if (updateItemResponse.containsKey("errorMessage")) {
-          return updateItemResponse["errorMessage"];
-        }
-        _cartItems.update(
-          cartItem.id,
-          (value) {
-            value.quantity--;
-            return value;
-          },
-        );
-      } else {
-        var deleteItemResponse = await firebase.delete();
-        if (deleteItemResponse.containsKey("errorMessage")) {
-          return deleteItemResponse["errorMessage"];
-        }
-        _cartItems.remove(cartItem.id);
-      }
-      return "Removed an Entry of ${cartItem.title} from Cart";
-    } on Exception catch (exception) {
-      return "Exception: $exception";
-    } finally {
-      notifyListeners();
+    if (cartItem.quantity > 1) {
+      _cartItems.update(
+        cartItem.id,
+        (value) {
+          value.quantity--;
+          return value;
+        },
+      );
+    } else {
+      _cartItems.remove(cartItem.id);
     }
+    await updateFirebase();
+    notifyListeners();
+    return "Single Item removed from Cart!";
   }
 
-  bool clearCart() {
+  Future<bool> clearCart() async {
     try {
       String removeResponse = "";
       cartItems.forEach((key, value) async {
@@ -183,10 +138,11 @@ class Cart with ChangeNotifier {
 
   // Save For Later Functions
 
-  String addAllItemToCartFromSaveForLater() {
+  Future<String> addAllItemToCartFromSaveForLater() async {
     try {
       _cartItems.addAll(_savedForLater);
       _savedForLater.clear();
+      await updateFirebase();
       return "All Cart Products have been added to the Cart!";
     } on Exception catch (exception) {
       return "Exception: $exception";
@@ -195,10 +151,11 @@ class Cart with ChangeNotifier {
     }
   }
 
-  bool addItemToCartFromSaveForLater(Product product) {
+  Future<bool> addItemToCartFromSaveForLater(Product product) async {
     try {
       _cartItems.putIfAbsent(product.id, () => product);
       removeItemFromSavedForLater(product.id);
+      await updateFirebase();
       return true;
     } on Exception catch (_) {
       return false;
@@ -207,9 +164,10 @@ class Cart with ChangeNotifier {
     }
   }
 
-  bool addItemToSaveForLater(Product product) {
+  Future<bool> addItemToSaveForLater(Product product) async {
     try {
       _savedForLater.putIfAbsent(product.id, () => product);
+      await updateFirebase();
       return true;
     } on Exception catch (_) {
       return false;
@@ -218,14 +176,31 @@ class Cart with ChangeNotifier {
     }
   }
 
-  bool removeItemFromSavedForLater(String productId) {
+  Future<bool> removeItemFromSavedForLater(String productId) async {
     try {
       _savedForLater.remove(productId);
+      await updateFirebase();
       return true;
     } on Exception catch (_) {
       return false;
     } finally {
       notifyListeners();
     }
+  }
+
+  Future<void> updateFirebase() async {
+    firebase.setUrlWithUserAndId(urlStr, cartId);
+    var data = {
+      "cartItems": _cartItems,
+      "savedForLater": _savedForLater,
+    };
+    Map<String, dynamic> cartAddResponse = cartId == null
+        ? await firebase.post(data, false)
+        : await firebase.patch(data, false);
+    if (cartAddResponse.containsKey("errorMessage")) {
+      return cartAddResponse["errorMessage"];
+    }
+    print("cartId after adding cart $cartId");
+    cartId = cartId ?? cartAddResponse["name"];
   }
 }

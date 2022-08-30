@@ -25,7 +25,7 @@ class ProductItem extends StatelessWidget {
           backgroundColor: Theme.of(context).bottomAppBarColor.withOpacity(0.7),
           leading: IconButton(
             onPressed: () {
-              product.toggleFavorite();
+              product.toggleFavorite(context);
             },
             icon: Icon(
               product.isFavorite ? Icons.favorite : Icons.favorite_border,

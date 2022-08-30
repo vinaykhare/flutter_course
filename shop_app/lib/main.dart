@@ -5,6 +5,7 @@ import 'models/auth_service.dart';
 import 'models/cart.dart';
 import 'models/orders.dart';
 import 'models/products.dart';
+import 'models/integrate_firebase.dart';
 import 'screens/auth_screen.dart';
 import 'screens/cart_items.dart';
 import 'screens/orders_page.dart';
@@ -12,6 +13,7 @@ import 'screens/product_details.dart';
 import 'screens/products_overview.dart';
 import 'screens/manage_products.dart';
 import 'screens/add_edit_product.dart';
+import 'screens/splash_screen.dart';
 
 void main() => runApp(const MyApp());
 
@@ -29,16 +31,22 @@ class MyApp extends StatelessWidget {
         //   value: Cart(),
         // ),
         ChangeNotifierProvider(
-          create: (context) => Products(),
-        ),
-        ChangeNotifierProvider(
-          create: (context) => Cart(),
-        ),
-        ChangeNotifierProvider(
-          create: (context) => Orders(),
-        ),
-        ChangeNotifierProvider(
           create: (context) => AuthService(),
+        ),
+        ChangeNotifierProxyProvider<AuthService, IntegrateFirebase>(
+          create: (context) => IntegrateFirebase(
+              Provider.of<AuthService>(context, listen: false)),
+          update: (context, authService, prevProduct) =>
+              IntegrateFirebase(authService),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => Products(context),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => Cart(context),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => Orders(context),
         ),
       ],
       child: Consumer<AuthService>(
@@ -54,7 +62,16 @@ class MyApp extends StatelessWidget {
           ),
           home: authService.token != null
               ? const ProductsOverview()
-              : const AuthScreen(),
+              : FutureBuilder(
+                  future: authService.autoLogin(),
+                  builder: (ctx, snap) {
+                    if (snap.connectionState == ConnectionState.waiting) {
+                      return const SplashScreen();
+                    } else {
+                      return const AuthScreen();
+                    }
+                  },
+                ),
           // initialRoute: authService.token != null
           //     ? ProductsOverview.routePath
           //     : AuthScreen.routePath,

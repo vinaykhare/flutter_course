@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_print
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import './cart.dart';
 import './order.dart';
@@ -11,12 +12,19 @@ class Orders with ChangeNotifier {
   final List<Order> _listOfOrders = [];
   String urlStr = '/orders';
 
+  late IntegrateFirebase firebase;
+
+  Orders(BuildContext context) {
+    firebase = Provider.of<IntegrateFirebase>(context, listen: false);
+    firebase.setUrl = urlStr;
+  }
+
   List<Order> get allOrders {
     return [..._listOfOrders];
   }
 
   Future<String> fetchaAllOrders() async {
-    IntegrateFirebase firebase = IntegrateFirebase(urlStr);
+    firebase.setUrl = urlStr;
     var serverOrders = await firebase.get();
     if (serverOrders.containsKey("errorMessage")) {
       return serverOrders["errorMessage"];
@@ -59,15 +67,16 @@ class Orders with ChangeNotifier {
     if (cart.cartItems.isEmpty) {
       return "Cart is Empty!";
     }
-    IntegrateFirebase firebase = IntegrateFirebase(urlStr);
 
     var timestamp = DateTime.now();
+    firebase.setUrl = urlStr;
     var addOrderResponse = await firebase.post(
       {
         "products": cart.cartItems,
         "orderCreationDate": timestamp.toIso8601String(),
         "amount": cart.cartTotal,
       },
+      true,
     );
     if (addOrderResponse.containsKey("errorMessage")) {
       return addOrderResponse["errorMessage"];

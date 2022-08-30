@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shop_app/models/product.dart';
 
 import '../models/cart.dart';
+import '../models/product.dart';
 
 class SelectedProducts extends StatelessWidget {
   const SelectedProducts({
@@ -53,7 +53,7 @@ class SelectedProducts extends StatelessWidget {
                             action: SnackBarAction(
                               label: "UNDO",
                               onPressed: () {
-                                cart.addItemToCart(cartItem);
+                                //cart.addItemToCart(cartItem);
                               },
                             ),
                           ),
@@ -65,20 +65,21 @@ class SelectedProducts extends StatelessWidget {
                   if (allowEdit)
                     IconButton(
                       onPressed: () async {
-                        String message = await cart.addItemToCart(cartItem);
-                        scMessenger.hideCurrentSnackBar();
-                        scMessenger.showSnackBar(
-                          SnackBar(
-                            content: Text(message),
-                            duration: const Duration(seconds: 5),
-                            action: SnackBarAction(
-                              label: "UNDO",
-                              onPressed: () {
-                                cart.removeSingleItemFromCart(cartItem);
-                              },
-                            ),
-                          ),
-                        );
+                        await cart.addItemToCart(cartItem);
+                        // String message = await cart.addItemToCart(cartItem);
+                        // scMessenger.hideCurrentSnackBar();
+                        // scMessenger.showSnackBar(
+                        //   SnackBar(
+                        //     content: Text(message),
+                        //     duration: const Duration(seconds: 5),
+                        //     action: SnackBarAction(
+                        //       label: "UNDO",
+                        //       onPressed: () {
+                        //         cart.removeSingleItemFromCart(cartItem);
+                        //       },
+                        //     ),
+                        //   ),
+                        // );
                       },
                       icon: const Icon(Icons.add),
                     ),

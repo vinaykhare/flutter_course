@@ -1,14 +1,19 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../models/integrate_firebase.dart';
 
 class Product with ChangeNotifier {
   String _id = DateTime.now().toString(),
       _title = "",
       _description = "",
-      _imageUrl = "";
+      _imageUrl = "",
+      _createdBy = "system";
   double _price = 0.0;
 
   int quantity = 1;
   bool isFavorite = false;
+
+  String urlStr = '/favorites/';
 
   Product({
     id,
@@ -16,6 +21,7 @@ class Product with ChangeNotifier {
     description,
     price,
     imageUrl,
+    createdBy,
     qty,
   }) {
     _id = id ?? DateTime.now().toString();
@@ -23,6 +29,7 @@ class Product with ChangeNotifier {
     _description = description ?? "";
     _imageUrl = imageUrl ?? "";
     _price = price ?? 0.0;
+    _createdBy = createdBy ?? _createdBy;
     quantity = qty ?? 1;
   }
 
@@ -46,6 +53,10 @@ class Product with ChangeNotifier {
     _price = price;
   }
 
+  set createdBy(user) {
+    _createdBy = user;
+  }
+
   String get id {
     return _id;
   }
@@ -66,9 +77,23 @@ class Product with ChangeNotifier {
     return _price;
   }
 
-  void toggleFavorite() {
+  String get createdBy {
+    return _createdBy;
+  }
+
+  Future<String> toggleFavorite(BuildContext context) async {
+    IntegrateFirebase firebase =
+        Provider.of<IntegrateFirebase>(context, listen: false);
+    firebase.setUrlWithUser = urlStr;
+    var response = await firebase.patch({
+      id: !isFavorite,
+    }, false);
+    if (response.containsKey("errorMessage")) {
+      return response["errorMessage"];
+    }
     isFavorite = !isFavorite;
     notifyListeners();
+    return "Favorite Toggled";
   }
 
   @override
@@ -83,6 +108,7 @@ class Product with ChangeNotifier {
       "description": description,
       "price": price,
       "imageUrl": imageUrl,
+      "createdBy": createdBy,
       "quantity": quantity,
     };
   }
@@ -95,7 +121,9 @@ class Product with ChangeNotifier {
         _description = value["dscription"] ?? "";
         _imageUrl = value["imageUrl"] ?? "";
         _price = value["price"] ?? 0.0;
+        _createdBy = value["createdBy"];
         quantity = value["quantity"] ?? 1;
+        isFavorite = value["isFavorite"];
       },
     );
   }

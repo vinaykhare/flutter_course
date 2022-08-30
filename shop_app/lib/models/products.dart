@@ -1,4 +1,8 @@
+// ignore_for_file: avoid_print
+
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:shop_app/models/auth_service.dart';
 import './integrate_firebase.dart';
 
 import './product.dart';
@@ -6,11 +10,28 @@ import './product.dart';
 
 class Products with ChangeNotifier {
   String urlStr = '/products';
+  late IntegrateFirebase firebase;
+
+  Products(BuildContext context) {
+    firebase = Provider.of<IntegrateFirebase>(context, listen: false);
+    firebase.setUrl = urlStr;
+  }
 
   List<Product> products = [];
 
   List<Product> get allProducts {
     return [...products];
+  }
+
+  List<Product> myProducts(BuildContext context) {
+    List<Product> filterMyProducts = [];
+    for (var product in products) {
+      if (product.createdBy ==
+          Provider.of<AuthService>(context, listen: false).userId) {
+        filterMyProducts.add(product);
+      }
+    }
+    return filterMyProducts;
   }
 
   List<Product> get favoriteProducts {
@@ -30,6 +51,7 @@ class Products with ChangeNotifier {
     }
     if (productIndex == -1) {
       product.setId = productId;
+      product.createdBy = "";
       products.add(product);
     } else {
       products[productIndex] = product;
@@ -59,9 +81,10 @@ class Products with ChangeNotifier {
 
   Future<String> postPatchFirebase(
       Map<String, dynamic> data, String url, int type) async {
-    IntegrateFirebase firebase = IntegrateFirebase(url);
-    Map<String, dynamic> patchPostResponse =
-        type == 0 ? await firebase.post(data) : await firebase.patch(data);
+    firebase.setUrl = url;
+    Map<String, dynamic> patchPostResponse = type == 0
+        ? await firebase.post(data, true)
+        : await firebase.patch(data, true);
     if (patchPostResponse.containsKey("errorMessage")) {
       return patchPostResponse["errorMessage"];
     }
@@ -72,7 +95,6 @@ class Products with ChangeNotifier {
     int productIndex =
         products.indexWhere((element) => element.id == product.id);
     products.removeAt(productIndex);
-    //print("Product Length ${products.length} after removing");
     String? message = await removeProductInFirebase(product);
     if (message != null) {
       products.insert(productIndex, product);
@@ -84,7 +106,7 @@ class Products with ChangeNotifier {
   }
 
   Future<String?> removeProductInFirebase(Product product) async {
-    IntegrateFirebase firebase = IntegrateFirebase("$urlStr/${product.id}");
+    firebase.setUrl = "$urlStr/${product.id}";
     Map<String, dynamic> deleteResponse = await firebase.delete();
     if (deleteResponse.containsKey("errorMessage")) {
       return deleteResponse["errorMessage"];
@@ -92,33 +114,40 @@ class Products with ChangeNotifier {
     return null;
   }
 
-  Future<void> fetchaAllPrducts() async {
-    IntegrateFirebase firebase = IntegrateFirebase(urlStr);
+  Future<void> fetchAllProducts() async {
+    firebase.setUrl = urlStr;
     var getResponse = await firebase.get();
     if (getResponse.containsKey("errorMessage")) {
       return getResponse["errorMessage"];
     }
+
+    firebase.setUrlWithUser = "/favorites/";
+    var favoriteResponse = await firebase.get();
     products.clear();
-    //urlStr = "https://boip.in";
-    getResponse.forEach((prodId, productData) {
-      Product product = Product(
-        id: prodId,
-        description: productData["description"],
-        imageUrl: productData["imageUrl"],
-        title: productData["title"],
-        price: productData["price"],
-      );
-      product.isFavorite = productData["isFavorite"] ?? false;
-      products.add(
-        product,
-      );
-    });
+    getResponse.forEach(
+      (prodId, productData) {
+        print("Product being added: ${productData["title"]}");
+        Product product = Product(
+          id: prodId,
+          description: productData["description"],
+          imageUrl: productData["imageUrl"],
+          title: productData["title"],
+          price: productData["price"],
+          createdBy: productData["createdBy"],
+        );
+        // print(
+        //     "Favorite reponse for Product ${product.title} is ${favoriteResponse[product.id]}");
+        product.isFavorite = favoriteResponse.containsKey("errorMessage")
+            ? false
+            : (favoriteResponse[product.id] ?? false);
+        products.add(
+          product,
+        );
+      },
+    );
     notifyListeners();
   }
 }
-
-
-
 
     // Product(
     //   id: 'p1',

@@ -32,13 +32,13 @@ class _ProductsOverviewState extends State<ProductsOverview> {
   bool isLoading = true;
 
   Future<void> refershProducts(BuildContext context) async {
-    await Provider.of<Products>(context, listen: false).fetchaAllPrducts();
+    await Provider.of<Products>(context, listen: false).fetchAllProducts();
   }
 
   @override
   void didChangeDependencies() {
     if (isInit) {
-      Provider.of<Products>(context, listen: false).fetchaAllPrducts().then(
+      Provider.of<Products>(context, listen: false).fetchAllProducts().then(
             (value) => setState(
               () {
                 isLoading = false;
