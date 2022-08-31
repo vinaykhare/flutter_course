@@ -14,11 +14,15 @@ class AppDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    String email = Provider.of<AuthService>(context, listen: true).email;
+    String name = email.split("@")[0].toUpperCase();
     return Drawer(
       child: Column(
         children: <Widget>[
           AppBar(
-            title: const Text('Our Shop App'),
+            title: email == ""
+                ? const Text('Our Shop App')
+                : Text('$name\'s Shop App'),
             automaticallyImplyLeading: false,
           ),
           ListTile(

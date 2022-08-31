@@ -8,6 +8,7 @@ import 'my_exception.dart';
 
 class IntegrateFirebase with ChangeNotifier {
   final AuthService authService;
+  String firebaseShopAppAPI = "";
   String targetObject = '/products';
   String urlStr = "";
 
@@ -15,21 +16,16 @@ class IntegrateFirebase with ChangeNotifier {
 
   set setUrl(String targetObject) {
     urlStr =
-        'https://shop-app-202208181250-default-rtdb.asia-southeast1.firebasedatabase.app$targetObject.json?auth=${authService.authToken}';
+        '$firebaseShopAppAPI$targetObject.json?auth=${authService.authToken}';
   }
 
-  set setUrlWithUser(String targetObject) {
-    urlStr =
-        'https://shop-app-202208181250-default-rtdb.asia-southeast1.firebasedatabase.app$targetObject/${authService.userId}.json?auth=${authService.authToken}';
-  }
-
-  void setUrlWithUserAndId(String targetObject, String? id) {
-    if (id != null) {
+  void setUrlWithUser(String targetObject, String? filter) {
+    if (filter != null) {
       urlStr =
-          'https://shop-app-202208181250-default-rtdb.asia-southeast1.firebasedatabase.app$targetObject/${authService.userId}/$id.json?auth=${authService.authToken}';
+          '$firebaseShopAppAPI$targetObject.json?auth=${authService.authToken}&orderBy="$filter"&equalTo="${authService.userId}"';
     } else {
       urlStr =
-          'https://shop-app-202208181250-default-rtdb.asia-southeast1.firebasedatabase.app$targetObject/${authService.userId}.json?auth=${authService.authToken}';
+          '$firebaseShopAppAPI$targetObject/${authService.userId}.json?auth=${authService.authToken}';
     }
   }
   // set setToken(String authToken) {
@@ -166,7 +162,7 @@ class IntegrateFirebase with ChangeNotifier {
         resp = json.decode(response.body) as Map<String, dynamic>;
       }
       print("Get for: ${urlStr.split("?")[0]}");
-      // if (urlStr.contains("favor")) {
+      // if (urlStr.contains("orders")) {
       //   print("Get for: ${urlStr.split("?")[0]} is $resp");
       // }
       return resp;

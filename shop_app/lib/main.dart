@@ -35,7 +35,8 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProxyProvider<AuthService, IntegrateFirebase>(
           create: (context) => IntegrateFirebase(
-              Provider.of<AuthService>(context, listen: false)),
+            Provider.of<AuthService>(context, listen: false),
+          ),
           update: (context, authService, prevProduct) =>
               IntegrateFirebase(authService),
         ),

@@ -32,7 +32,7 @@ class _OrderItemState extends State<OrderItem> {
             ),
           ),
           title: Text(
-            widget.order.id,
+            "${widget.order.products.entries.first.value.title}...",
           ),
           subtitle: Text(
             DateFormat('dd-mmm-yyyy hh:mm')

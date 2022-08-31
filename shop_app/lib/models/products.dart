@@ -121,12 +121,12 @@ class Products with ChangeNotifier {
       return getResponse["errorMessage"];
     }
 
-    firebase.setUrlWithUser = "/favorites/";
+    firebase.setUrlWithUser("/favorites/", null);
     var favoriteResponse = await firebase.get();
     products.clear();
     getResponse.forEach(
       (prodId, productData) {
-        print("Product being added: ${productData["title"]}");
+        //print("Product being added: ${productData["title"]}");
         Product product = Product(
           id: prodId,
           description: productData["description"],

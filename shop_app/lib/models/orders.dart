@@ -24,7 +24,7 @@ class Orders with ChangeNotifier {
   }
 
   Future<String> fetchaAllOrders() async {
-    firebase.setUrl = urlStr;
+    firebase.setUrlWithUser(urlStr, "createdBy");
     var serverOrders = await firebase.get();
     if (serverOrders.containsKey("errorMessage")) {
       return serverOrders["errorMessage"];

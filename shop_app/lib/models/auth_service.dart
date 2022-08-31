@@ -9,12 +9,33 @@ import 'package:shared_preferences/shared_preferences.dart';
 //import './my_exception.dart';
 
 class AuthService with ChangeNotifier {
+  String authServerUrl = "";
   //static String authToken = "";
   //static String userId = "";
+  String email = "";
   String authToken = "";
   String userId = "";
   DateTime _expiryDate = DateTime.now().subtract(const Duration(days: 730));
   Timer? _authTimer;
+
+  AuthService() {
+    SharedPreferences.getInstance().then(
+      (pref) {
+        var extractedData = pref.getString("shopAppAuthData");
+        if (extractedData != null) {
+          Map<String, dynamic> extractedDecodeData = json.decode(extractedData);
+          authToken = extractedDecodeData["authToken"] as String;
+          userId = extractedDecodeData["userId"] as String;
+          _expiryDate = DateTime.parse(
+            extractedDecodeData["expriyDate"] as String,
+          );
+          email = extractedDecodeData["email"] as String;
+        }
+      },
+    ).catchError((error) {
+      print("Construtor failed in feteching the Shared Pref: $error");
+    });
+  }
 
   String? get token {
     //print(DateTime.now().isBefore(_expriyDate));
@@ -30,7 +51,7 @@ class AuthService with ChangeNotifier {
     try {
       SharedPreferences pref = await SharedPreferences.getInstance();
       String urlStr =
-          "https://identitytoolkit.googleapis.com/v1/accounts:$authType?key=AIzaSyA4ewmMiArfo4NIS7G4t5wjbRduX8E8hOM";
+          "$authServerUrl/v1/accounts:$authType?key=AIzaSyA4ewmMiArfo4NIS7G4t5wjbRduX8E8hOM";
       Uri url = Uri.parse(urlStr);
 
       var response = await http.post(url,
@@ -53,6 +74,7 @@ class AuthService with ChangeNotifier {
           ),
         ),
       );
+      email = responesBody['email'];
       pref.setString(
         "shopAppAuthData",
         json.encode(
@@ -60,6 +82,7 @@ class AuthService with ChangeNotifier {
             "authToken": authToken,
             "userId": userId,
             "expriyDate": _expiryDate.toIso8601String(),
+            "email": email,
           },
         ),
       );
@@ -101,13 +124,14 @@ class AuthService with ChangeNotifier {
       return false;
     }
 
-    Map<String, String> extractedDecodeData = json.decode(extractedData);
-    authToken = extractedDecodeData["extractedData"] ?? "";
-    userId = extractedDecodeData["userId"] ?? "";
+    Map<String, dynamic> extractedDecodeData = json.decode(extractedData);
+    authToken = extractedDecodeData["authToken"] as String;
+    userId = extractedDecodeData["userId"] as String;
     _expiryDate = DateTime.parse(
-      extractedDecodeData["expriyDate"] ?? DateTime.now().toIso8601String(),
+      extractedDecodeData["expriyDate"] as String,
     );
-    print("After Auto Login $authToken and $_expiryDate");
+    email = extractedDecodeData["email"] as String;
+    print("After Invocation of Auto Login $_expiryDate");
     autoLogout();
     notifyListeners();
 

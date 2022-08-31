@@ -84,7 +84,7 @@ class Product with ChangeNotifier {
   Future<String> toggleFavorite(BuildContext context) async {
     IntegrateFirebase firebase =
         Provider.of<IntegrateFirebase>(context, listen: false);
-    firebase.setUrlWithUser = urlStr;
+    firebase.setUrlWithUser(urlStr, null);
     var response = await firebase.patch({
       id: !isFavorite,
     }, false);
