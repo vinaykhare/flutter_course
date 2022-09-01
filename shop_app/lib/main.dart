@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'helper/page_transition_builder.dart';
 import 'models/auth_service.dart';
 import 'models/cart.dart';
 import 'models/orders.dart';
@@ -60,6 +61,12 @@ class MyApp extends StatelessWidget {
               accentColor: Colors.pinkAccent,
             ),
             fontFamily: 'Lato',
+            pageTransitionsTheme: PageTransitionsTheme(
+              builders: {
+                TargetPlatform.android: MyPagetTransitionBuilder(),
+                TargetPlatform.iOS: MyPagetTransitionBuilder(),
+              },
+            ),
           ),
           home: authService.token != null
               ? const ProductsOverview()

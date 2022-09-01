@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -23,51 +21,58 @@ class _OrderItemState extends State<OrderItem> {
   @override
   Widget build(BuildContext context) {
     var scMessenger = ScaffoldMessenger.of(context);
-    return Column(
-      children: [
-        ListTile(
-          leading: Chip(
-            label: Text(
-              widget.order.amount.toString(),
-            ),
-          ),
-          title: Text(
-            "${widget.order.products.entries.first.value.title}...",
-          ),
-          subtitle: Text(
-            DateFormat('dd-mmm-yyyy hh:mm')
-                .format(widget.order.orderCreationDate),
-          ),
-          trailing: IconButton(
-            onPressed: () {
-              setState(
-                () {
-                  _expanded = !_expanded;
-                },
-              );
-            },
-            icon: _expanded
-                ? const Icon(
-                    Icons.expand_more,
-                  )
-                : const Icon(
-                    Icons.expand_less,
-                  ),
-          ),
-        ),
-        if (_expanded)
-          SizedBox(
-            height: min(widget.order.products.length * 20.0 + 100, 180),
-            child: ListView.builder(
-              itemBuilder: (ctx, index) => SelectedProducts(
-                cartItem: widget.order.products.values.toList()[index],
-                allowEdit: false,
-                scMessenger: scMessenger,
+    return SingleChildScrollView(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        height: _expanded ? widget.order.products.length * 100.0 : 80,
+        child: Column(
+          children: [
+            ListTile(
+              leading: Chip(
+                label: Text(
+                  widget.order.amount.toString(),
+                ),
               ),
-              itemCount: widget.order.products.length,
+              title: Text(
+                "${widget.order.products.entries.first.value.title}...",
+              ),
+              subtitle: Text(
+                DateFormat('dd-mmm-yyyy hh:mm')
+                    .format(widget.order.orderCreationDate),
+              ),
+              trailing: IconButton(
+                onPressed: () {
+                  setState(
+                    () {
+                      _expanded = !_expanded;
+                    },
+                  );
+                },
+                icon: _expanded
+                    ? const Icon(
+                        Icons.expand_less,
+                      )
+                    : const Icon(
+                        Icons.expand_more,
+                      ),
+              ),
             ),
-          )
-      ],
+            //if (_expanded)
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              height: _expanded ? widget.order.products.length * 40.0 : 0,
+              child: ListView.builder(
+                itemBuilder: (ctx, index) => SelectedProducts(
+                  cartItem: widget.order.products.values.toList()[index],
+                  allowEdit: false,
+                  scMessenger: scMessenger,
+                ),
+                itemCount: widget.order.products.length,
+              ),
+            )
+          ],
+        ),
+      ),
     );
   }
 }

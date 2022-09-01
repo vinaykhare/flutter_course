@@ -36,37 +36,65 @@ class ProductDetails extends StatelessWidget {
         appBarWidget.preferredSize.height -
         70;
     return Scaffold(
-      appBar: appBarWidget,
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          SizedBox(
-            height: appHeight * 0.80,
-            width: double.infinity,
-            child: Image.network(
-              product.imageUrl,
-              fit: BoxFit.cover,
-            ),
-          ),
-          SizedBox(
-            height: appHeight * 0.10,
-            width: double.infinity,
-            child: FittedBox(
-              child: Text(
-                '\$ ${product.price}/-',
-                style: Theme.of(context).textTheme.bodyMedium,
-                textAlign: TextAlign.center,
+      //appBar: appBarWidget,
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: appHeight * 0.80,
+            pinned: true,
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            foregroundColor: Theme.of(context).colorScheme.background,
+            //collapsedHeight: appBarWidget.preferredSize.height,
+            flexibleSpace: FlexibleSpaceBar(
+              centerTitle: true,
+              title: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(30.0),
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                ),
+                child: Text(
+                  product.title,
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+              ),
+              background: Hero(
+                tag: product.id,
+                child: Image.network(
+                  product.imageUrl,
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
           ),
-          SizedBox(
-            height: appHeight * 0.10,
-            width: double.infinity,
-            child: FittedBox(
-              child: Text(
-                product.description,
-                textAlign: TextAlign.center,
-              ),
+          SliverList(
+            delegate: SliverChildListDelegate(
+              [
+                SizedBox(
+                  height: appHeight * 0.10,
+                  width: double.infinity,
+                  child: FittedBox(
+                    child: Text(
+                      '\$ ${product.price}/-',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: appHeight * 0.10,
+                  width: double.infinity,
+                  child: FittedBox(
+                    child: Text(
+                      product.description,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+                const SizedBox(
+                  height: 1000,
+                ),
+              ],
             ),
           ),
         ],
