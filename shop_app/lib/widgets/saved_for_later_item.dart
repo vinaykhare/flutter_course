@@ -14,13 +14,24 @@ class SavedForLater extends StatelessWidget {
     Cart cart = Provider.of<Cart>(context);
     return Card(
       child: ListTile(
-        leading: CircleAvatar(
-          backgroundImage: NetworkImage(savedForLaterItem.imageUrl),
-          // child: Padding(
-          //   padding: const EdgeInsets.all(5),
-          //   child: FittedBox(child: Image.network(savedForLaterItem.imageUrl)),
-          // ),
-        ),
+        leading: savedForLaterItem.imageUrl.startsWith("http")
+            ? CircleAvatar(
+                backgroundImage: NetworkImage(savedForLaterItem.imageUrl),
+                // child: Padding(
+                //   padding: const EdgeInsets.all(5),
+                //   child: FittedBox(child: Image.network(savedForLaterItem.imageUrl)),
+                // ),
+              )
+            : const CircleAvatar(
+                //backgroundImage: FileImage(File(savedForLaterItem.imageUrl)),
+                //backgroundImage: MemoryImage(savedForLaterItem.image),
+                backgroundImage:
+                    AssetImage('assets/images/product-placeholder.png'),
+                // child: Padding(
+                //   padding: const EdgeInsets.all(5),
+                //   child: FittedBox(child: Image.network(savedForLaterItem.imageUrl)),
+                // ),
+              ),
         title: Text(savedForLaterItem.title),
         subtitle: Text(
           'Total: \$${(savedForLaterItem.price * savedForLaterItem.quantity)}',

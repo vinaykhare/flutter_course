@@ -70,6 +70,7 @@ class Cart with ChangeNotifier {
               price: value["price"],
               qty: value["quantity"],
               title: value["title"],
+              //image: base64Decode(value["image"] ?? ""),
             ),
           );
         },
@@ -89,6 +90,7 @@ class Cart with ChangeNotifier {
               price: value["price"],
               qty: value["quantity"],
               title: value["title"],
+              //image: base64Decode(value["image"] ?? ""),
             ),
           );
         },
@@ -129,6 +131,7 @@ class Cart with ChangeNotifier {
           imageUrl: product.imageUrl,
           price: product.price,
           title: product.title,
+          image: product.image,
         ),
       );
     }

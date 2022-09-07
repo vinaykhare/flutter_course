@@ -58,15 +58,22 @@ class ProductItem extends StatelessWidget {
           ),
           child: Hero(
             tag: product.id,
-            child: FadeInImage(
-              placeholder:
-                  const AssetImage("assets/images/product-placeholder.png"),
-              image: NetworkImage(product.imageUrl),
-              // child: Image.network(
-              //   product.imageUrl,
-              //   fit: BoxFit.cover,
-              // ),
-            ),
+            child: product.imageUrl.startsWith("http")
+                ? FadeInImage(
+                    placeholder: const AssetImage(
+                        "assets/images/product-placeholder.png"),
+                    image: NetworkImage(product.imageUrl),
+                    // child: Image.network(
+                    //   product.imageUrl,
+                    //   fit: BoxFit.cover,
+                    // ),
+                  )
+                : FadeInImage(
+                    placeholder: const AssetImage(
+                        "assets/images/product-placeholder.png"),
+                    //image: FileImage(File(product.imageUrl)),
+                    image: MemoryImage(product.image),
+                  ),
           ),
         ),
       ),

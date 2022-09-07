@@ -15,6 +15,8 @@ import 'screens/products_overview.dart';
 import 'screens/manage_products.dart';
 import 'screens/add_edit_product.dart';
 import 'screens/splash_screen.dart';
+import 'screens/address_page.dart';
+import 'screens/order_summary.dart';
 
 void main() => runApp(const MyApp());
 
@@ -91,6 +93,8 @@ class MyApp extends StatelessWidget {
             ManageProducts.routePath: (context) => const ManageProducts(),
             AddEditProduct.routePath: (context) => const AddEditProduct(),
             AuthScreen.routePath: (context) => const AuthScreen(),
+            AddressPage.routePath: (context) => const AddressPage(),
+            OrderSummary.routePath: (context) => const OrderSummary(),
           },
         ),
       ),

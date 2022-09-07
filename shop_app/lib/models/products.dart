@@ -1,5 +1,7 @@
 // ignore_for_file: avoid_print
 
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shop_app/models/auth_service.dart';
@@ -21,6 +23,11 @@ class Products with ChangeNotifier {
 
   List<Product> get allProducts {
     return [...products];
+  }
+
+  Product findById(String id) {
+    Product prod = products.firstWhere((element) => element.id == id);
+    return prod;
   }
 
   List<Product> myProducts(BuildContext context) {
@@ -69,6 +76,7 @@ class Products with ChangeNotifier {
       "description": product.description,
       "imageUrl": product.imageUrl,
       "price": product.price,
+      "image": base64Encode(product.image),
     };
 
     if (productIndex == -1) {
@@ -111,6 +119,7 @@ class Products with ChangeNotifier {
     if (deleteResponse.containsKey("errorMessage")) {
       return deleteResponse["errorMessage"];
     }
+    notifyListeners();
     return null;
   }
 
@@ -134,6 +143,7 @@ class Products with ChangeNotifier {
           title: productData["title"],
           price: productData["price"],
           createdBy: productData["createdBy"],
+          image: base64Decode(productData["image"] ?? ""),
         );
         // print(
         //     "Favorite reponse for Product ${product.title} is ${favoriteResponse[product.id]}");

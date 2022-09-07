@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:shop_app/models/product.dart';
 
 import '../models/products.dart';
+import '../widgets/image_input_form.dart';
 
 class AddEditProduct extends StatefulWidget {
   static String routePath = "/addeditproduct";
@@ -16,8 +17,6 @@ class _AddEditProductState extends State<AddEditProduct> {
   final _formKey = GlobalKey<FormState>();
   final _priceFocusNode = FocusNode();
   final _descriptionFocusNode = FocusNode();
-  final _imageUrlController = TextEditingController();
-  final _imageUrlFocusNode = FocusNode();
 
   bool intializeProduct = true;
   bool isLoading = false;
@@ -76,17 +75,6 @@ class _AddEditProductState extends State<AddEditProduct> {
     );
   }
 
-  void updateImageUrl() {
-    tempProduct.setImageUrl = _imageUrlController.text;
-    setState(() {});
-  }
-
-  @override
-  void initState() {
-    _imageUrlFocusNode.addListener(updateImageUrl);
-    super.initState();
-  }
-
   @override
   void didChangeDependencies() {
     if (intializeProduct) {
@@ -94,7 +82,6 @@ class _AddEditProductState extends State<AddEditProduct> {
       tempProduct = modRoute != null && modRoute.settings.arguments != null
           ? modRoute.settings.arguments as Product
           : Product();
-      _imageUrlController.text = tempProduct.imageUrl;
     }
     intializeProduct = false;
     super.didChangeDependencies();
@@ -102,9 +89,6 @@ class _AddEditProductState extends State<AddEditProduct> {
 
   @override
   void dispose() {
-    _imageUrlFocusNode.removeListener(updateImageUrl);
-    _imageUrlFocusNode.dispose();
-    _imageUrlController.dispose();
     _priceFocusNode.dispose();
     _descriptionFocusNode.dispose();
     super.dispose();
@@ -150,7 +134,9 @@ class _AddEditProductState extends State<AddEditProduct> {
                         },
                       ),
                       TextFormField(
-                        initialValue: tempProduct.price.toString(),
+                        initialValue: tempProduct.price > 0
+                            ? tempProduct.price.toString()
+                            : "",
                         decoration: const InputDecoration(
                           label: Text("Price"),
                         ),
@@ -194,55 +180,8 @@ class _AddEditProductState extends State<AddEditProduct> {
                         },
                       ),
                       const Divider(),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Container(
-                            height: 100,
-                            width: 100,
-                            padding: const EdgeInsets.all(8.0),
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                width: 1.0,
-                                color: Colors.grey,
-                              ),
-                            ),
-                            child: _imageUrlController.text.isEmpty
-                                ? const FittedBox(child: Text("Insert URL"))
-                                : FittedBox(
-                                    child: Image.network(
-                                        _imageUrlController.text,
-                                        fit: BoxFit.cover),
-                                  ),
-                          ),
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: TextFormField(
-                                decoration: const InputDecoration(
-                                  label: Text("Image URL"),
-                                ),
-                                keyboardType: TextInputType.url,
-                                textInputAction: TextInputAction.next,
-                                controller: _imageUrlController,
-                                //onFieldSubmitted: (_) => setState(() {}),
-                                onEditingComplete: () => setState(() {}),
-                                focusNode: _imageUrlFocusNode,
-                                onSaved: (value) =>
-                                    tempProduct.setImageUrl = value,
-                                validator: (value) {
-                                  RegExp exp = RegExp(
-                                      r'(?:(?:https?|ftp):\/\/)?[\w/\-?=%.]+\.[\w/\-?=%.]+');
-                                  if (value != null && !exp.hasMatch(value)) {
-                                    return "Invalid URL!";
-                                  }
-                                  return null;
-                                },
-                                onFieldSubmitted: (_) => validateAndSaveForm(),
-                              ),
-                            ),
-                          ),
-                        ],
+                      ImageInputForm(
+                        tempProduct: tempProduct,
                       ),
                     ],
                   )),

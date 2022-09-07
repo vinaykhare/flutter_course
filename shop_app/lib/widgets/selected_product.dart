@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shop_app/models/products.dart';
 
 import '../models/cart.dart';
 import '../models/product.dart';
+import '../screens/product_details.dart';
 
 class SelectedProducts extends StatelessWidget {
   const SelectedProducts({
@@ -24,13 +26,30 @@ class SelectedProducts extends StatelessWidget {
         vertical: 4,
       ),
       child: ListTile(
-        leading: CircleAvatar(
-          // child: Padding(
-          //   padding: const EdgeInsets.all(5),
-          //   child: FittedBox(child: Image.network(cartItem.imageUrl)),
-          // ),
-          backgroundImage: NetworkImage(cartItem.imageUrl),
+        onTap: () => Navigator.of(context).pushNamed(
+          ProductDetails.routePath,
+          arguments: Provider.of<Products>(context, listen: false).findById(
+            cartItem.id,
+          ),
         ),
+        leading: cartItem.imageUrl.startsWith("http")
+            ? CircleAvatar(
+                // child: Padding(
+                //   padding: const EdgeInsets.all(5),
+                //   child: FittedBox(child: Image.network(cartItem.imageUrl)),
+                // ),
+                backgroundImage: NetworkImage(cartItem.imageUrl),
+              )
+            : const CircleAvatar(
+                // child: Padding(
+                //   padding: const EdgeInsets.all(5),
+                //   child: FittedBox(child: Image.network(cartItem.imageUrl)),
+                // ),
+                //backgroundImage: FileImage(File(cartItem.imageUrl)),
+                //backgroundImage: MemoryImage(cartItem.image, scale: 10.0),
+                backgroundImage:
+                    AssetImage('assets/images/product-placeholder.png'),
+              ),
         title: Text(cartItem.title),
         subtitle: Text('Total: \$${(cartItem.price * cartItem.quantity)}'),
         trailing: FittedBox(

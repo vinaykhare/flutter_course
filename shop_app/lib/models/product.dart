@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/integrate_firebase.dart';
@@ -8,7 +10,8 @@ class Product with ChangeNotifier {
       _description = "",
       _imageUrl = "",
       _createdBy = "system";
-  double _price = 0.0;
+  double _price = 100.0;
+  Uint8List _image = Uint8List.fromList([]);
 
   int quantity = 1;
   bool isFavorite = false;
@@ -23,6 +26,7 @@ class Product with ChangeNotifier {
     imageUrl,
     createdBy,
     qty,
+    image,
   }) {
     _id = id ?? DateTime.now().toString();
     _title = title ?? "";
@@ -31,6 +35,7 @@ class Product with ChangeNotifier {
     _price = price ?? 0.0;
     _createdBy = createdBy ?? _createdBy;
     quantity = qty ?? 1;
+    _image = image ?? Uint8List.fromList([]);
   }
 
   set setId(id) {
@@ -55,6 +60,14 @@ class Product with ChangeNotifier {
 
   set createdBy(user) {
     _createdBy = user;
+  }
+
+  set setImage(Uint8List img) {
+    _image = img;
+  }
+
+  Uint8List get image {
+    return _image;
   }
 
   String get id {

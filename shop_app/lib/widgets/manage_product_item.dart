@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shop_app/screens/add_edit_product.dart';
@@ -12,11 +13,17 @@ class ManageProductItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: CircleAvatar(
-        backgroundImage: NetworkImage(
-          product.imageUrl,
-        ),
-      ),
+      leading: product.imageUrl.startsWith("http")
+          ? CircleAvatar(
+              backgroundImage: NetworkImage(
+                product.imageUrl,
+              ),
+            )
+          : CircleAvatar(
+              backgroundImage: FileImage(
+                File(product.imageUrl),
+              ),
+            ),
       title: Text(product.title),
       trailing: FittedBox(
         //width: 100,
