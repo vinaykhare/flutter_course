@@ -80,14 +80,15 @@ class Products with ChangeNotifier {
     };
 
     if (productIndex == -1) {
-      productId = await postPatchFirebase(data, urlStr, 0);
+      productId = await postPatchFirebase(data, urlStr, 0) ?? product.id;
     } else {
-      productId = await postPatchFirebase(data, "$urlStr/${product.id}", 1);
+      productId = await postPatchFirebase(data, "$urlStr/${product.id}", 1) ??
+          product.id;
     }
     return productId;
   }
 
-  Future<String> postPatchFirebase(
+  Future<String?> postPatchFirebase(
       Map<String, dynamic> data, String url, int type) async {
     firebase.setUrl = url;
     Map<String, dynamic> patchPostResponse = type == 0

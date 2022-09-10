@@ -17,6 +17,7 @@ class ProductItem extends StatelessWidget {
   Widget build(BuildContext context) {
     Product product = Provider.of<Product>(context);
     Cart cart = Provider.of<Cart>(context);
+    var scMessenger = ScaffoldMessenger.of(context);
     return GestureDetector(
       onTap: () => Navigator.of(context)
           .pushNamed(ProductDetails.routePath, arguments: product),
@@ -24,8 +25,17 @@ class ProductItem extends StatelessWidget {
         footer: GridTileBar(
           backgroundColor: Theme.of(context).bottomAppBarColor.withOpacity(0.7),
           leading: IconButton(
-            onPressed: () {
-              product.toggleFavorite(context);
+            onPressed: () async {
+              String? response;
+              response = await product.toggleFavorite(context);
+              if (response != null) {
+                scMessenger.clearSnackBars();
+                scMessenger.showSnackBar(
+                  SnackBar(
+                    content: Text(response),
+                  ),
+                );
+              }
             },
             icon: Icon(
               product.isFavorite ? Icons.favorite : Icons.favorite_border,
@@ -40,8 +50,15 @@ class ProductItem extends StatelessWidget {
             value: cart.getItemQuantityOf(product.id).toString(),
             color: Colors.red,
             child: IconButton(
-              onPressed: () {
-                cart.addItemToCart(product);
+              onPressed: () async {
+                String? message = await cart.addItemToCart(product);
+                scMessenger.hideCurrentSnackBar();
+                scMessenger.showSnackBar(
+                  SnackBar(
+                    content: Text(message ?? "Item added to the Cart!"),
+                    duration: const Duration(seconds: 5),
+                  ),
+                );
               },
               icon: Icon(
                 Icons.shopping_cart,

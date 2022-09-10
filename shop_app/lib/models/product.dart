@@ -94,11 +94,11 @@ class Product with ChangeNotifier {
     return _createdBy;
   }
 
-  Future<String> toggleFavorite(BuildContext context) async {
+  Future<String?> toggleFavorite(BuildContext context) async {
     IntegrateFirebase firebase =
         Provider.of<IntegrateFirebase>(context, listen: false);
     firebase.setUrlWithUser(urlStr, null);
-    var response = await firebase.patch({
+    Map<String, dynamic> response = await firebase.patch({
       id: !isFavorite,
     }, false);
     if (response.containsKey("errorMessage")) {
@@ -106,7 +106,7 @@ class Product with ChangeNotifier {
     }
     isFavorite = !isFavorite;
     notifyListeners();
-    return "Favorite Toggled";
+    return null;
   }
 
   @override

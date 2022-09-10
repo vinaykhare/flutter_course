@@ -62,11 +62,10 @@ class _ImageInputFormState extends State<ImageInputForm> {
 
   Future<void> updateImageUrl() async {
     widget.tempProduct.setImageUrl = _imageUrlController.text;
-    if (!_imageUrlController.text.startsWith("http") &&
-        _imageUrlController.text.isNotEmpty) {
-      widget.tempProduct.setImage =
-          await File(_imageUrlController.text).readAsBytes();
-    }
+    // if (!_imageUrlController.text.startsWith("http")) {
+    //   widget.tempProduct.setImage =
+    //       await File(_imageUrlController.text).readAsBytes();
+    // }
 
     setState(() {});
   }

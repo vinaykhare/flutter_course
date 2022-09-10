@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shop_app/screens/add_edit_product.dart';
@@ -12,6 +11,7 @@ class ManageProductItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    ScaffoldMessengerState scMessenger = ScaffoldMessenger.of(context);
     return ListTile(
       leading: product.imageUrl.startsWith("http")
           ? CircleAvatar(
@@ -20,8 +20,8 @@ class ManageProductItem extends StatelessWidget {
               ),
             )
           : CircleAvatar(
-              backgroundImage: FileImage(
-                File(product.imageUrl),
+              backgroundImage: MemoryImage(
+                product.image,
               ),
             ),
       title: Text(product.title),
@@ -45,6 +45,12 @@ class ManageProductItem extends StatelessWidget {
                     await Provider.of<Products>(context, listen: false)
                         .removeProduct(product);
                 if (removeResponse != null) {
+                  scMessenger.clearSnackBars();
+                  scMessenger.showSnackBar(
+                    SnackBar(
+                      content: Text(removeResponse),
+                    ),
+                  );
                 } else {}
               },
               icon: const Icon(

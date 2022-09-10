@@ -12,6 +12,7 @@ class SavedForLater extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Cart cart = Provider.of<Cart>(context);
+    ScaffoldMessengerState scMessenger = ScaffoldMessenger.of(context);
     return Card(
       child: ListTile(
         leading: savedForLaterItem.imageUrl.startsWith("http")
@@ -22,11 +23,11 @@ class SavedForLater extends StatelessWidget {
                 //   child: FittedBox(child: Image.network(savedForLaterItem.imageUrl)),
                 // ),
               )
-            : const CircleAvatar(
+            : CircleAvatar(
                 //backgroundImage: FileImage(File(savedForLaterItem.imageUrl)),
-                //backgroundImage: MemoryImage(savedForLaterItem.image),
-                backgroundImage:
-                    AssetImage('assets/images/product-placeholder.png'),
+                backgroundImage: MemoryImage(savedForLaterItem.image),
+                // backgroundImage:
+                //     AssetImage('assets/images/product-placeholder.png'),
                 // child: Padding(
                 //   padding: const EdgeInsets.all(5),
                 //   child: FittedBox(child: Image.network(savedForLaterItem.imageUrl)),
@@ -40,13 +41,30 @@ class SavedForLater extends StatelessWidget {
           child: Row(
             children: [
               IconButton(
-                onPressed: () =>
-                    cart.addItemToCartFromSaveForLater(savedForLaterItem),
+                onPressed: () async {
+                  String? response;
+                  response = await cart
+                      .addItemToCartFromSaveForLater(savedForLaterItem);
+                  scMessenger.clearSnackBars();
+                  scMessenger.showSnackBar(
+                    SnackBar(
+                      content: Text(response ?? "Item Added to Cart"),
+                    ),
+                  );
+                },
                 icon: const Icon(Icons.move_up),
               ),
               IconButton(
-                onPressed: () =>
-                    cart.removeItemFromSavedForLater(savedForLaterItem.id),
+                onPressed: () async {
+                  String? response;
+                  response = await cart.removeItemFromCart(savedForLaterItem);
+                  scMessenger.clearSnackBars();
+                  scMessenger.showSnackBar(
+                    SnackBar(
+                      content: Text(response ?? "Item Added to Cart"),
+                    ),
+                  );
+                },
                 icon: const Icon(Icons.delete_forever),
               ),
             ],

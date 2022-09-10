@@ -38,38 +38,9 @@ class _AddEditProductState extends State<AddEditProduct> {
       return;
     }
     _formKey.currentState!.save();
-    setState(() {
-      isLoading = true;
-    });
-    products.addUpdateProduct(tempProduct).catchError(
-      (error) {
-        showDialog(
-          context: context,
-          builder: (ctx) {
-            return AlertDialog(
-              title: const Text("Error"),
-              content: Text(error.toString()),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(ctx).pop();
-                    setState(() {
-                      isLoading = false;
-                    });
-                  },
-                  child: const Text("Ok"),
-                )
-              ],
-            );
-          },
-        );
-        return null;
-      },
-    ).then(
+
+    products.addUpdateProduct(tempProduct).then(
       (_) {
-        setState(() {
-          isLoading = false;
-        });
         Navigator.of(context).pop();
       },
     );

@@ -180,6 +180,7 @@ class AuthCardState extends State<AuthCard>
                   onSaved: (value) {
                     _authData['password'] = value ?? "";
                   },
+                  onFieldSubmitted: (value) => _submit(),
                 ),
                 if (_authMode == AuthMode.signup)
                   FadeTransition(

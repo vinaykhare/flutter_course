@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../models/product.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/manage_product_item.dart';
 import '../models/products.dart';
@@ -25,7 +24,6 @@ class ManageProductsState extends State<ManageProducts> {
   @override
   Widget build(BuildContext context) {
     Products products = Provider.of<Products>(context);
-    List<Product> myProducts = products.myProducts(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text("Manage Products"),
@@ -42,15 +40,18 @@ class ManageProductsState extends State<ManageProducts> {
       body: RefreshIndicator(
         onRefresh: () => refershProducts(context),
         child: ListView.builder(
-          itemCount: myProducts.length,
+          itemCount: products.myProducts(context).length,
           itemBuilder: (context, index) {
-            return Column(
-              children: [
-                ManageProductItem(
-                  product: myProducts[index],
-                ),
-                const Divider(),
-              ],
+            return ChangeNotifierProvider.value(
+              value: products.myProducts(context)[index],
+              child: Column(
+                children: [
+                  ManageProductItem(
+                    product: products.myProducts(context)[index],
+                  ),
+                  const Divider(),
+                ],
+              ),
             );
           },
         ),

@@ -52,22 +52,24 @@ class CartItem extends StatelessWidget {
       ),
       //direction: DismissDirection.endToStart,
       onDismissed: (direction) async {
+        String? message;
         if (direction == DismissDirection.startToEnd) {
-          Provider.of<Cart>(context, listen: false)
+          message = await Provider.of<Cart>(context, listen: false)
               .addItemToSaveForLater(cartItem);
+        } else {
+          message = await Provider.of<Cart>(context, listen: false)
+              .removeItemFromCart(cartItem);
         }
-        String message = await Provider.of<Cart>(context, listen: false)
-            .removeItemFromCart(cartItem);
         scMessenger.hideCurrentSnackBar();
         scMessenger.showSnackBar(
           SnackBar(
-            content: Text(message),
+            content: Text(message ?? "Item removed from the Cart!"),
             duration: const Duration(seconds: 5),
           ),
         );
       },
       child: SelectedProducts(
-        cartItem: cartItem,
+        product: cartItem,
         allowEdit: allowEdit,
         scMessenger: scMessenger,
       ),

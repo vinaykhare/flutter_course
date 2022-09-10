@@ -3,12 +3,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'cart_item.dart';
 import 'integrate_firebase.dart';
 import 'product.dart';
 
 class Cart with ChangeNotifier {
-  final Map<String, Product> _cartItems = {};
-  final Map<String, Product> _savedForLater = {};
+  final Map<String, CartItem> _cartItems = {};
   String urlStr = '/cartitems';
 
   late IntegrateFirebase firebase;
@@ -18,43 +18,41 @@ class Cart with ChangeNotifier {
     firebase.setUrl = urlStr;
   }
 
-  Map<String, Product> get cartItems {
-    return _cartItems;
+  Map<String, CartItem> get cartItems {
+    Map<String, CartItem> activeCartItems =
+        Map<String, CartItem>.of(_cartItems);
+    activeCartItems.removeWhere((key, value) => value.isActive == false);
+    return activeCartItems;
   }
 
-  Map<String, Product> get savedForLater {
-    return _savedForLater;
-  }
-
-  int get numberOfCartItems {
-    return _cartItems.length;
+  Map<String, CartItem> get savedForLater {
+    Map<String, CartItem> inactiveCartItems =
+        Map<String, CartItem>.of(_cartItems);
+    inactiveCartItems.removeWhere((key, value) => value.isActive == true);
+    return inactiveCartItems;
   }
 
   double get cartTotal {
     double total = 0.0;
     _cartItems.forEach((key, cartItem) {
-      total += cartItem.price * cartItem.quantity;
+      if (cartItem.isActive) {
+        total += cartItem.price * cartItem.quantity;
+      }
     });
     return total;
   }
 
   int getItemQuantityOf(String id) {
-    Product? prod = _cartItems[id];
-    if (prod != null) {
-      return prod.quantity;
-    } else {
-      return 0;
-    }
+    return _cartItems[id]?.quantity ?? 0;
   }
 
-  Future<String> fetchaAllCartItems() async {
-    _savedForLater.clear();
-    _cartItems.clear();
+  Future<String?> fetchaAllCartItems() async {
     firebase.setUrlWithUser(urlStr, null);
     var serverCartItems = await firebase.get();
     if (serverCartItems.containsKey("errorMessage")) {
       return serverCartItems["errorMessage"];
     }
+    _cartItems.clear();
     //_cartItems = serverCartItems["cartItems"];
     Map<String, dynamic>? cartJson = serverCartItems["cartItems"];
     if (cartJson != null) {
@@ -62,58 +60,23 @@ class Cart with ChangeNotifier {
         (key, value) {
           _cartItems.putIfAbsent(
             key,
-            () => Product(
-              createdBy: value["createdBy"],
-              description: value["description"],
-              id: value["id"],
-              imageUrl: value["imageUrl"],
-              price: value["price"],
-              qty: value["quantity"],
-              title: value["title"],
-              //image: base64Decode(value["image"] ?? ""),
+            () => CartItem(
+              value["quantity"],
+              value["isActive"],
+              value["price"],
             ),
           );
         },
       );
     }
-    Map<String, dynamic>? saveForLaterJson = serverCartItems["savedForLater"];
-    if (saveForLaterJson != null) {
-      saveForLaterJson.forEach(
-        (key, value) {
-          _savedForLater.putIfAbsent(
-            key,
-            () => Product(
-              createdBy: value["createdBy"],
-              description: value["description"],
-              id: value["id"],
-              imageUrl: value["imageUrl"],
-              price: value["price"],
-              qty: value["quantity"],
-              title: value["title"],
-              //image: base64Decode(value["image"] ?? ""),
-            ),
-          );
-        },
-      );
-    }
-    // serverCartItems.forEach(
-    //   (prodId, productData) {
-    //     Product product = Product(
-    //       id: prodId,
-    //       description: productData["description"],
-    //       imageUrl: productData["imageUrl"],
-    //       title: productData["title"],
-    //       price: productData["price"],
-    //     );
-    //     product.isFavorite = productData["isFavorite"] ?? false;
-    //     _cartItems.putIfAbsent(prodId, () => product);
-    //   },
-    // );
+
     notifyListeners();
-    return "Shopping Cart Loaded Successfully.";
+    return null;
   }
 
-  Future<void> addItemToCart(Product product) async {
+  Future<String?> addItemToCart(Product product) async {
+    Map<String, CartItem> cartCopy = Map<String, CartItem>.of(_cartItems);
+    String? serverResponse;
     if (_cartItems.containsKey(product.id)) {
       _cartItems.update(
         product.id,
@@ -125,65 +88,125 @@ class Cart with ChangeNotifier {
     } else {
       _cartItems.putIfAbsent(
         product.id,
-        () => Product(
-          id: product.id,
-          description: product.description,
-          imageUrl: product.imageUrl,
-          price: product.price,
-          title: product.title,
-          image: product.image,
+        () => CartItem(
+          1,
+          true,
+          product.price,
         ),
       );
     }
-    await updateFirebase();
     notifyListeners();
+
+    serverResponse = await updateFirebase();
+    if (serverResponse != null) {
+      _cartItems.clear();
+      _cartItems.addAll(cartCopy);
+      notifyListeners();
+    }
+
+    return serverResponse;
   }
 
-  Future<String> removeItemFromCart(Product product) async {
+  Future<String?> removeItemFromCart(Product product) async {
+    String? response;
+    Map<String, CartItem> cartCopy = Map<String, CartItem>.of(_cartItems);
     _cartItems.remove(product.id);
-    await updateFirebase();
     notifyListeners();
-    return "";
+    response = await updateFirebase();
+    if (response != null) {
+      _cartItems.clear();
+      _cartItems.addAll(cartCopy);
+      notifyListeners();
+    }
+    return response;
   }
 
-  Future<String> removeSingleItemFromCart(Product cartItem) async {
-    if (cartItem.quantity > 1) {
+  Future<String?> removeSingleItemFromCart(Product product) async {
+    String? response;
+    Map<String, CartItem> cartCopy = Map<String, CartItem>.of(_cartItems);
+
+    if ((_cartItems[product.id]?.quantity ?? 0) > 1) {
       _cartItems.update(
-        cartItem.id,
+        product.id,
         (value) {
           value.quantity--;
           return value;
         },
       );
     } else {
-      _cartItems.remove(cartItem.id);
+      _cartItems.remove(product.id);
     }
-    await updateFirebase();
     notifyListeners();
-    return "Single Item removed from Cart!";
+
+    response = await updateFirebase();
+    if (response != null) {
+      _cartItems.clear();
+      _cartItems.addAll(cartCopy);
+      notifyListeners();
+    }
+
+    return response;
   }
 
-  Future<bool> clearCart() async {
+  Future<String?> clearCart() async {
     try {
-      String removeResponse = "";
-      cartItems.clear();
-      await updateFirebase();
-      return removeResponse == "";
-    } catch (exception) {
-      return false;
-    } finally {
+      String? removeResponse;
+      Map<String, CartItem> cartCopy = Map<String, CartItem>.of(_cartItems);
+      _cartItems.removeWhere((key, value) => value.isActive == true);
       notifyListeners();
+      removeResponse = await updateFirebase();
+      if (removeResponse != null) {
+        // cartCopy.forEach((key, value) {
+        //   _cartItems.putIfAbsent(key, () => value);
+        // });
+        _cartItems.addAll(cartCopy);
+        notifyListeners();
+      }
+      return removeResponse;
+    } catch (exception) {
+      notifyListeners();
+      return "Exception: $exception";
+    }
+  }
+
+  Future<String?> clearCompleteCart() async {
+    try {
+      String? removeResponse;
+      Map<String, CartItem> cartCopy = Map<String, CartItem>.of(_cartItems);
+      cartItems.clear();
+      notifyListeners();
+      removeResponse = await updateFirebase();
+      if (removeResponse != null) {
+        // cartCopy.forEach((key, value) {
+        //   _cartItems.putIfAbsent(key, () => value);
+        // });
+        _cartItems.addAll(cartCopy);
+        notifyListeners();
+      }
+      return removeResponse;
+    } catch (exception) {
+      notifyListeners();
+      return "Exception: $exception";
     }
   }
 
   // Save For Later Functions
 
-  Future<String> addAllItemToCartFromSaveForLater() async {
+  Future<String?> addAllItemToCartFromSaveForLater() async {
     try {
-      _cartItems.addAll(_savedForLater);
-      _savedForLater.clear();
-      await updateFirebase();
-      return "All Cart Products have been added to the Cart!";
+      String? response;
+      Map<String, CartItem> cartCopy = Map<String, CartItem>.of(_cartItems);
+      _cartItems.forEach((key, value) {
+        value.isActive = true;
+      });
+      notifyListeners();
+      response = await updateFirebase();
+      if (response != null) {
+        _cartItems.clear();
+        _cartItems.addAll(cartCopy);
+        notifyListeners();
+      }
+      return response;
     } on Exception catch (exception) {
       return "Exception: $exception";
     } finally {
@@ -191,52 +214,51 @@ class Cart with ChangeNotifier {
     }
   }
 
-  Future<bool> addItemToCartFromSaveForLater(Product product) async {
+  Future<String?> addItemToCartFromSaveForLater(Product product) async {
     try {
-      _cartItems.putIfAbsent(product.id, () => product);
-      removeItemFromSavedForLater(product.id);
-      await updateFirebase();
-      return true;
-    } on Exception catch (_) {
-      return false;
-    } finally {
+      Map<String, CartItem> cartCopy = Map<String, CartItem>.of(_cartItems);
+      _cartItems[product.id]?.isActive = true;
+      String? response;
       notifyListeners();
+      response = await updateFirebase();
+      if (response != null) {
+        _cartItems.clear();
+        _cartItems.addAll(cartCopy);
+        notifyListeners();
+      }
+      return response;
+    } on Exception catch (exception) {
+      return "Exception: $exception";
     }
   }
 
-  Future<bool> addItemToSaveForLater(Product product) async {
+  Future<String?> addItemToSaveForLater(Product product) async {
     try {
-      _savedForLater.putIfAbsent(product.id, () => product);
-      await updateFirebase();
-      return true;
-    } on Exception catch (_) {
-      return false;
-    } finally {
+      Map<String, CartItem> cartCopy = Map<String, CartItem>.of(_cartItems);
+      _cartItems[product.id]?.isActive = false;
+      String? response;
       notifyListeners();
+      response = await updateFirebase();
+      if (response != null) {
+        _cartItems.clear();
+        _cartItems.addAll(cartCopy);
+        notifyListeners();
+      }
+      return response;
+    } on Exception catch (exception) {
+      return "Exception: $exception";
     }
   }
 
-  Future<bool> removeItemFromSavedForLater(String productId) async {
-    try {
-      _savedForLater.remove(productId);
-      await updateFirebase();
-      return true;
-    } on Exception catch (_) {
-      return false;
-    } finally {
-      notifyListeners();
-    }
-  }
-
-  Future<void> updateFirebase() async {
+  Future<String?> updateFirebase() async {
     firebase.setUrlWithUser(urlStr, null);
     var data = {
       "cartItems": _cartItems,
-      "savedForLater": _savedForLater,
     };
     Map<String, dynamic> cartAddResponse = await firebase.patch(data, false);
     if (cartAddResponse.containsKey("errorMessage")) {
       return cartAddResponse["errorMessage"];
     }
+    return null;
   }
 }

@@ -25,6 +25,7 @@ class ProductDetails extends StatelessWidget {
         appBarWidget.preferredSize.height -
         70;
     Cart cart = Provider.of<Cart>(context);
+    ScaffoldMessengerState scMessenger = ScaffoldMessenger.of(context);
     return Scaffold(
       //appBar: appBarWidget,
       body: CustomScrollView(
@@ -109,8 +110,16 @@ class ProductDetails extends StatelessWidget {
                     ),
                   ),
                   child: IconButton(
-                    onPressed: () {
-                      product.toggleFavorite(context);
+                    onPressed: () async {
+                      String? response = await product.toggleFavorite(context);
+                      if (response != null) {
+                        scMessenger.clearSnackBars();
+                        scMessenger.showSnackBar(
+                          SnackBar(
+                            content: Text(response),
+                          ),
+                        );
+                      }
                     },
                     icon: Icon(
                       providerProduct.isFavorite
@@ -132,8 +141,15 @@ class ProductDetails extends StatelessWidget {
                     ),
                   ),
                   child: IconButton(
-                      onPressed: () {
-                        cart.addItemToCart(product);
+                      onPressed: () async {
+                        String? response;
+                        response = await cart.addItemToCart(product);
+                        scMessenger.clearSnackBars();
+                        scMessenger.showSnackBar(
+                          SnackBar(
+                            content: Text(response ?? "Item Added to Cart"),
+                          ),
+                        );
                       },
                       icon: Icon(
                         cart.cartItems.containsKey(product.id)
@@ -156,7 +172,7 @@ class ProductDetails extends StatelessWidget {
             child: Consumer<Cart>(
               builder: (ctx, cart, childWidget) {
                 return Badge(
-                  value: cart.numberOfCartItems.toString(),
+                  value: cart.cartItems[product.id]?.quantity.toString() ?? "0",
                   color: Colors.brown,
                   child: childWidget!,
                 );

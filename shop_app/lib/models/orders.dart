@@ -3,10 +3,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import './cart.dart';
-import './order.dart';
+import 'cart.dart';
+import 'order.dart';
 import 'integrate_firebase.dart';
-import 'product.dart';
+import 'cart_item.dart';
+import 'address.dart';
 
 class Orders with ChangeNotifier {
   final List<Order> _listOfOrders = [];
@@ -31,19 +32,15 @@ class Orders with ChangeNotifier {
     }
     _listOfOrders.clear();
     serverOrders.forEach((orderId, orderData) {
-      //print(orderData["products"]);
-      Map<String, Product> productsFromServer = {};
+      Map<String, CartItem> productsFromServer = {};
       var productList = orderData["products"] as Map<String, dynamic>;
       productList.forEach((key, value) {
         productsFromServer.putIfAbsent(
           key,
-          () => Product(
-            id: value["id"],
-            description: value["description"],
-            imageUrl: value["imageUrl"],
-            price: value["price"],
-            title: value["title"],
-            qty: value["quantity"],
+          () => CartItem(
+            value["quantity"],
+            value["isActive"],
+            value["price"],
           ),
         );
       });
@@ -55,6 +52,7 @@ class Orders with ChangeNotifier {
         //   "orderindex": Product.fromJson(orderData["products"]),
         // },
         products: productsFromServer,
+        deliveryAddress: Address.fromJson(orderData["deliveryAddress"]),
       );
       _listOfOrders.add(order);
     });
@@ -63,11 +61,7 @@ class Orders with ChangeNotifier {
     return "Orders Loaded Successfully";
   }
 
-  Future<String> addOrder(Cart cart) async {
-    if (cart.cartItems.isEmpty) {
-      return "Cart is Empty!";
-    }
-
+  Future<String?> addOrder(Cart cart, [Address? address]) async {
     var timestamp = DateTime.now();
     firebase.setUrl = urlStr;
     var addOrderResponse = await firebase.post(
@@ -75,24 +69,26 @@ class Orders with ChangeNotifier {
         "products": cart.cartItems,
         "orderCreationDate": timestamp.toIso8601String(),
         "amount": cart.cartTotal,
+        "deliveryAddress": address,
       },
       true,
     );
     if (addOrderResponse.containsKey("errorMessage")) {
       return addOrderResponse["errorMessage"];
     }
-
+    Order order = Order(
+      id: addOrderResponse["name"],
+      products: Map<String, CartItem>.from(cart.cartItems),
+      orderCreationDate: timestamp,
+      amount: cart.cartTotal,
+    );
+    address != null ? order.setAddress(address) : "";
     _listOfOrders.insert(
       0,
-      Order(
-        id: addOrderResponse["name"],
-        products: Map<String, Product>.from(cart.cartItems),
-        orderCreationDate: timestamp,
-        amount: cart.cartTotal,
-      ),
+      order,
     );
 
-    return "Order Placed Successfully!";
+    return null;
   }
 
   @override

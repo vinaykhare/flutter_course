@@ -9,12 +9,12 @@ import '../screens/product_details.dart';
 class SelectedProducts extends StatelessWidget {
   const SelectedProducts({
     Key? key,
-    required this.cartItem,
+    required this.product,
     required this.allowEdit,
     required this.scMessenger,
   }) : super(key: key);
 
-  final Product cartItem;
+  final Product product;
   final bool allowEdit;
   final ScaffoldMessengerState scMessenger;
 
@@ -29,29 +29,29 @@ class SelectedProducts extends StatelessWidget {
         onTap: () => Navigator.of(context).pushNamed(
           ProductDetails.routePath,
           arguments: Provider.of<Products>(context, listen: false).findById(
-            cartItem.id,
+            product.id,
           ),
         ),
-        leading: cartItem.imageUrl.startsWith("http")
+        leading: product.imageUrl.startsWith("http")
             ? CircleAvatar(
                 // child: Padding(
                 //   padding: const EdgeInsets.all(5),
-                //   child: FittedBox(child: Image.network(cartItem.imageUrl)),
+                //   child: FittedBox(child: Image.network(product.imageUrl)),
                 // ),
-                backgroundImage: NetworkImage(cartItem.imageUrl),
+                backgroundImage: NetworkImage(product.imageUrl),
               )
-            : const CircleAvatar(
+            : CircleAvatar(
                 // child: Padding(
                 //   padding: const EdgeInsets.all(5),
-                //   child: FittedBox(child: Image.network(cartItem.imageUrl)),
+                //   child: FittedBox(child: Image.network(product.imageUrl)),
                 // ),
-                //backgroundImage: FileImage(File(cartItem.imageUrl)),
-                //backgroundImage: MemoryImage(cartItem.image, scale: 10.0),
-                backgroundImage:
-                    AssetImage('assets/images/product-placeholder.png'),
+                //backgroundImage: FileImage(File(product.imageUrl)),
+                backgroundImage: MemoryImage(product.image, scale: 10.0),
+                // backgroundImage:
+                //     AssetImage('assets/images/product-placeholder.png'),
               ),
-        title: Text(cartItem.title),
-        subtitle: Text('Total: \$${(cartItem.price * cartItem.quantity)}'),
+        title: Text(product.title),
+        subtitle: Text('Total: \$${(product.price * product.quantity)}'),
         trailing: FittedBox(
           child: Consumer<Cart>(
             builder: (context, cart, child) {
@@ -62,17 +62,17 @@ class SelectedProducts extends StatelessWidget {
                   if (allowEdit)
                     IconButton(
                       onPressed: () async {
-                        String message =
-                            await cart.removeSingleItemFromCart(cartItem);
+                        String? message =
+                            await cart.removeSingleItemFromCart(product);
                         scMessenger.hideCurrentSnackBar();
                         scMessenger.showSnackBar(
                           SnackBar(
-                            content: Text(message),
+                            content: Text(message ?? "Item removed from Cart"),
                             duration: const Duration(seconds: 5),
                             action: SnackBarAction(
                               label: "UNDO",
                               onPressed: () {
-                                //cart.addItemToCart(cartItem);
+                                //cart.addItemToCart(product);
                               },
                             ),
                           ),
@@ -80,25 +80,25 @@ class SelectedProducts extends StatelessWidget {
                       },
                       icon: const Icon(Icons.remove),
                     ),
-                  Text('${cartItem.quantity}'),
+                  Text('${cart.cartItems[product.id]?.quantity ?? 0}'),
                   if (allowEdit)
                     IconButton(
                       onPressed: () async {
-                        await cart.addItemToCart(cartItem);
-                        // String message = await cart.addItemToCart(cartItem);
-                        // scMessenger.hideCurrentSnackBar();
-                        // scMessenger.showSnackBar(
-                        //   SnackBar(
-                        //     content: Text(message),
-                        //     duration: const Duration(seconds: 5),
-                        //     action: SnackBarAction(
-                        //       label: "UNDO",
-                        //       onPressed: () {
-                        //         cart.removeSingleItemFromCart(cartItem);
-                        //       },
-                        //     ),
-                        //   ),
-                        // );
+                        //await cart.addItemToCart(product);
+                        String? message = await cart.addItemToCart(product);
+                        scMessenger.hideCurrentSnackBar();
+                        scMessenger.showSnackBar(
+                          SnackBar(
+                            content: Text(message ?? "Item Added to the Cart"),
+                            duration: const Duration(seconds: 5),
+                            action: SnackBarAction(
+                              label: "UNDO",
+                              onPressed: () {
+                                cart.removeSingleItemFromCart(product);
+                              },
+                            ),
+                          ),
+                        );
                       },
                       icon: const Icon(Icons.add),
                     ),

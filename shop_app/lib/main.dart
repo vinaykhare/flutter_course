@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shop_app/models/user_address.dart';
 
 import 'helper/page_transition_builder.dart';
 import 'models/auth_service.dart';
@@ -7,6 +8,7 @@ import 'models/cart.dart';
 import 'models/orders.dart';
 import 'models/products.dart';
 import 'models/integrate_firebase.dart';
+import 'screens/add_edit_address.dart';
 import 'screens/auth_screen.dart';
 import 'screens/cart_items.dart';
 import 'screens/orders_page.dart';
@@ -17,6 +19,7 @@ import 'screens/add_edit_product.dart';
 import 'screens/splash_screen.dart';
 import 'screens/address_page.dart';
 import 'screens/order_summary.dart';
+import 'screens/search_products.dart';
 
 void main() => runApp(const MyApp());
 
@@ -42,6 +45,9 @@ class MyApp extends StatelessWidget {
           ),
           update: (context, authService, prevProduct) =>
               IntegrateFirebase(authService),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => UserAddress(context),
         ),
         ChangeNotifierProvider(
           create: (context) => Products(context),
@@ -92,9 +98,11 @@ class MyApp extends StatelessWidget {
             OrdersPage.routePath: (context) => const OrdersPage(),
             ManageProducts.routePath: (context) => const ManageProducts(),
             AddEditProduct.routePath: (context) => const AddEditProduct(),
+            AddEditAddress.routePath: (context) => const AddEditAddress(),
             AuthScreen.routePath: (context) => const AuthScreen(),
             AddressPage.routePath: (context) => const AddressPage(),
             OrderSummary.routePath: (context) => const OrderSummary(),
+            SearchProducts.routePath: (context) => const SearchProducts(),
           },
         ),
       ),

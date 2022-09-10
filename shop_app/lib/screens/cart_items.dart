@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../models/cart.dart';
 //import '../widgets/app_drawer.dart';
-//import '../models/product.dart';
+import '../models/products.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/cart_item.dart';
 import '../widgets/saved_for_later_item.dart';
@@ -22,7 +22,7 @@ class CartScreen extends StatelessWidget {
       title: const Text('Cart Items'),
     );
     //final appHeight =        mq.size.height - mq.padding.top - appBarWidget.preferredSize.height;
-
+    ScaffoldMessengerState scMessenger = ScaffoldMessenger.of(context);
     return Scaffold(
       appBar: appBarWidget,
       drawer: const AppDrawer(),
@@ -64,7 +64,8 @@ class CartScreen extends StatelessWidget {
             child: ListView.builder(
               itemCount: cart.cartItems.length,
               itemBuilder: (ctx, i) => CartItem(
-                cart.cartItems.values.toList()[i],
+                Provider.of<Products>(context, listen: false)
+                    .findById(cart.cartItems.keys.toList()[i]),
                 allowEdit: true,
               ),
             ),
@@ -82,8 +83,16 @@ class CartScreen extends StatelessWidget {
                   const Spacer(),
                   TextButton(
                     child: const Text('Add All Back to Cart'),
-                    onPressed: () {
-                      cart.addAllItemToCartFromSaveForLater();
+                    onPressed: () async {
+                      String? response;
+                      response = await cart.addAllItemToCartFromSaveForLater();
+                      scMessenger.clearSnackBars();
+                      scMessenger.showSnackBar(
+                        SnackBar(
+                          content: Text(response ??
+                              "All Items saved for later are Added to Cart"),
+                        ),
+                      );
                     },
                   )
                 ],
@@ -94,7 +103,9 @@ class CartScreen extends StatelessWidget {
               child: ListView.builder(
                 itemCount: cart.savedForLater.length,
                 itemBuilder: (ctx, i) => SavedForLater(
-                  savedForLaterItem: cart.savedForLater.values.toList()[i],
+                  savedForLaterItem:
+                      Provider.of<Products>(context, listen: false)
+                          .findById(cart.savedForLater.keys.toList()[i]),
                 ),
               ),
             )
